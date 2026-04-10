@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Three.js�i���̃o�[�W�����d�v�j -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.126/build/three.min.js"></script>
+
+    <!-- GLTFLoader -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.126/examples/js/loaders/GLTFLoader.js"></script>
+
+    <!-- MindAR -->
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.4/dist/mindar-image-three.prod.js"></script>
+
+</head>
+<body style="margin:0;">
+
+    <script>
+        const start = async () => {
+
+            const mindarThree = new window.MINDAR.IMAGE.MindARThree({
+                container: document.body,
+                imageTargetSrc: './targets.mind'
+            });
+
+            const { renderer, scene, camera } = mindarThree;
+
+            // ���C�g
+            const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+            scene.add(light);
+
+            // GLB�ǂݍ���
+            const loader = new THREE.GLTFLoader();
+            const gltf = await loader.loadAsync('./avatar_1.glb');
+
+            // �A���J�[�i�摜�ɕR�Â��j
+            const anchor = mindarThree.addAnchor(0);
+            anchor.group.add(gltf.scene);
+
+            // �T�C�Y����
+            gltf.scene.scale.set(0.5, 0.5, 0.5);
+
+            await mindarThree.start();
+
+            renderer.setAnimationLoop(() => {
+                renderer.render(scene, camera);
+            });
+        };
+
+        start();
+    </script>
+
+</body>
+</html>
