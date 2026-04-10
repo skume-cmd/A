@@ -63,84 +63,23 @@ display: none; /* ← 最初は隠す */
         再スキャン
     </button>
     <script>
-        window.addEventListener("load", async () => {
+        const mindarThree = new window.MINDAR.IMAGE.MindARThree({
+            container: document.body,
+            imageTargetSrc: './targets.mind'
+        });
 
-            const debug = document.getElementById("debug");
-            const rescanBtn = document.getElementById("rescanBtn");
+        const { renderer, scene, camera } = mindarThree;
 
-            const log = (msg) => {
-                console.log(msg);
-                debug.innerHTML += msg + "<br>";
-            };
+        const geo = new THREE.BoxGeometry(1, 1, 1);
+        const mat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const cube = new THREE.Mesh(geo, mat);
 
-            let mindarThree;
+        scene.add(cube);
 
-            const startAR = async () => {
+        await mindarThree.start();
 
-                mindarThree = new window.MINDAR.IMAGE.MindARThree({
-                    container: document.querySelector("#ar-container"),
-                    imageTargetSrc: './targets.mind'
-                });
-
-                const { renderer, scene, camera } = mindarThree;
-
-                // ライト
-                const light = new THREE.HemisphereLight(0xffffff, 0xffffff, 2);
-                scene.add(light);
-
-                // モデル読み込み
-                const loader = new THREE.GLTFLoader();
-                const gltf = await loader.loadAsync('./avatar_1.glb');
-
-                // anchor
-                const anchor = mindarThree.addAnchor(0);
-                const geo = new THREE.BoxGeometry(1, 1, 1);
-                const mat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-                const cube = new THREE.Mesh(geo, mat);
-
-                anchor.group.add(cube);
-                anchor.onTargetFound = () => {
-                    log("認識した！");
-                    rescanBtn.style.display = "block";
-                };
-
-                anchor.onTargetLost = () => {
-                    rescanBtn.style.display = "none";
-                };
-
-                gltf.scene.scale.set(3, 3, 3);
-                gltf.scene.position.set(0, 0, 0);
-
-                anchor.group.add(gltf.scene);
-                console.log("model added");
-
-                await mindarThree.start();
-
-                renderer.setAnimationLoop(() => {
-                    renderer.render(scene, camera);
-                });
-
-                renderer.setSize(window.innerWidth, window.innerHeight);
-
-                window.addEventListener("resize", () => {
-                    renderer.setSize(window.innerWidth, window.innerHeight);
-                });
-            };
-
-            // 初回起動
-            await startAR();
-
-            // 再スキャン（安定版：作り直し）
-            rescanBtn.addEventListener("click", async () => {
-                rescanBtn.style.display = "none";
-
-                if (mindarThree) {
-                    await mindarThree.stop();
-                }
-
-                await startAR();
-            });
-
+        renderer.setAnimationLoop(() => {
+            renderer.render(scene, camera);
         });
     </script>
 
