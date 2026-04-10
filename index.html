@@ -50,6 +50,18 @@
     </style>
     <div id="ar-container"></div>
     <div id="debug"></div>
+    <button id="rescanBtn" style="
+position: fixed;
+bottom: 20px;
+left: 50%;
+transform: translateX(-50%);
+z-index: 9999;
+padding: 12px 20px;
+font-size: 16px;
+display: none; /* ← 最初は隠す */
+">
+        再スキャン
+    </button>
     <script>
         window.addEventListener("load", async () => {
             const debug = document.getElementById("debug");
@@ -70,6 +82,27 @@
 
             const loader = new THREE.GLTFLoader();
             const gltf = await loader.loadAsync('./avatar_1.glb');
+            const rescanBtn = document.getElementById("rescanBtn");
+
+            const anchor = mindarThree.addAnchor(0);
+
+            // 認識した瞬間
+            anchor.onTargetFound = () => {
+                console.log("認識した！");
+                rescanBtn.style.display = "block"; // ← ボタン表示
+            };
+
+            // 見失ったら（任意）
+            anchor.onTargetLost = () => {
+                rescanBtn.style.display = "none"; // ← 消す（好み）
+            };
+
+            rescanBtn.addEventListener("click", async () => {
+                rescanBtn.style.display = "none"; // 押したら消す
+
+                await mindarThree.stop();
+                await mindarThree.start();
+            });
 
             const anchor = mindarThree.addAnchor(0);
             anchor.group.add(gltf.scene);
@@ -81,6 +114,8 @@
             renderer.setAnimationLoop(() => {
                 renderer.render(scene, camera);
             });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
             window.addEventListener("resize", () => {
                 renderer.setSize(window.innerWidth, window.innerHeight);
             });
