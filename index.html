@@ -94,7 +94,11 @@ display: none; /* ← 最初は隠す */
 
                 // anchor
                 const anchor = mindarThree.addAnchor(0);
+                const geo = new THREE.BoxGeometry(1, 1, 1);
+                const mat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+                const cube = new THREE.Mesh(geo, mat);
 
+                anchor.group.add(cube);
                 anchor.onTargetFound = () => {
                     log("認識した！");
                     rescanBtn.style.display = "block";
