@@ -2,11 +2,28 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <title>MindAR 完成版</title>
 
-    <!-- Three.js（これだけ追加） -->
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+
+        #ar-container {
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+        }
+    </style>
+
+    <!-- Three.js（1回だけ） -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.126/build/three.min.js"></script>
 
-    <!-- MindAR -->
+    <!-- MindAR（安定版） -->
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.4/dist/mindar-image-three.prod.js"></script>
 
     <!-- GLTFLoader -->
@@ -14,31 +31,43 @@
 
 </head>
 
-<body style="margin:0; overflow:hidden;">
+<body>
+
+    <div id="ar-container"></div>
 
     <script>
         window.addEventListener("load", async () => {
 
+            // 初期化
             const mindarThree = new window.MINDAR.IMAGE.MindARThree({
-                container: document.body,
+                container: document.querySelector("#ar-container"),
                 imageTargetSrc: './targets.mind'
             });
 
             const { renderer, scene, camera } = mindarThree;
 
+            // サイズ強制（白画面対策）
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            // ライト
             const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
             scene.add(light);
 
+            // モデル読み込み
             const loader = new THREE.GLTFLoader();
-            const gltf = await loader.loadAsync('./avatar_1.glb');
+            const gltf = await loader.loadAsync('./a.glb');
 
+            // アンカー
             const anchor = mindarThree.addAnchor(0);
             anchor.group.add(gltf.scene);
 
+            // サイズ調整
             gltf.scene.scale.set(0.5, 0.5, 0.5);
 
+            // AR開始
             await mindarThree.start();
 
+            // 描画ループ
             renderer.setAnimationLoop(() => {
                 renderer.render(scene, camera);
             });
