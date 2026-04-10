@@ -2,21 +2,22 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>MindAR GitHub Pages</title>
 
-    <!-- Three.js -->
+    <!-- Three.js（これだけ追加） -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.126/build/three.min.js"></script>
+
+    <!-- MindAR -->
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.4/dist/mindar-image-three.prod.js"></script>
 
     <!-- GLTFLoader -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.126/examples/js/loaders/GLTFLoader.js"></script>
 
-    <!-- MindAR (Image + Three.js) -->
-    <script src="https://unpkg.com/mind-ar@1.2.4/dist/mindar-image-three.prod.js"></script>
 </head>
 
 <body style="margin:0; overflow:hidden;">
+
     <script>
-        const start = async () => {
+        window.addEventListener("load", async () => {
 
             const mindarThree = new window.MINDAR.IMAGE.MindARThree({
                 container: document.body,
@@ -25,15 +26,12 @@
 
             const { renderer, scene, camera } = mindarThree;
 
-            // ライト
             const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
             scene.add(light);
 
-            // GLB 読み込み
             const loader = new THREE.GLTFLoader();
             const gltf = await loader.loadAsync('./avatar_1.glb');
 
-            // アンカー（targets.mind の 0番目）
             const anchor = mindarThree.addAnchor(0);
             anchor.group.add(gltf.scene);
 
@@ -44,9 +42,9 @@
             renderer.setAnimationLoop(() => {
                 renderer.render(scene, camera);
             });
-        };
 
-        start();
+        });
     </script>
+
 </body>
 </html>
