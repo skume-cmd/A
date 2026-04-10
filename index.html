@@ -85,7 +85,7 @@ display: none; /* ← 最初は隠す */
                 const { renderer, scene, camera } = mindarThree;
 
                 // ライト
-                const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+                const light = new THREE.HemisphereLight(0xffffff, 0xffffff, 2);
                 scene.add(light);
 
                 // モデル読み込み
@@ -104,10 +104,11 @@ display: none; /* ← 最初は隠す */
                     rescanBtn.style.display = "none";
                 };
 
-                gltf.scene.scale.set(0.5, 0.5, 0.5);
+                gltf.scene.scale.set(3, 3, 3);
                 gltf.scene.position.set(0, 0, 0);
 
                 anchor.group.add(gltf.scene);
+                console.log("model added");
 
                 await mindarThree.start();
 
