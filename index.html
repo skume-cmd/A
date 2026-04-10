@@ -29,9 +29,23 @@
         }
     </style>
     <div id="ar-container"></div>
+    <div id="debug" style="
+position:fixed;
+top:0;
+left:0;
+color:red;
+background:rgba(0,0,0,0.5);
+z-index:9999;
+font-size:20px;
+"></div>
     <script>
         window.addEventListener("load", async () => {
+            const debug = document.getElementById("debug");
 
+            const log = (msg) => {
+                console.log(msg);
+                debug.innerHTML += msg + "<br>";
+            };
             const mindarThree = new window.MINDAR.IMAGE.MindARThree({
                 container: document.body,
                 imageTargetSrc: './targets.mind'
