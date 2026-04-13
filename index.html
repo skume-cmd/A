@@ -1,86 +1,80 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <title>AR Debug</title>
 
-    <!-- Three.js（これだけ追加） -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.126/build/three.min.js"></script>
-
-    <!-- MindAR -->
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.4/dist/mindar-image-three.prod.js"></script>
-
-    <!-- GLTFLoader -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.126/examples/js/loaders/GLTFLoader.js"></script>
-
-</head>
-
-<body>
     <style>
         html, body {
             margin: 0;
             padding: 0;
             overflow: hidden;
-            height: 100%;
         }
 
+        /* カメラとcanvasを画面いっぱいに */
         video, canvas {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            object-fit: cover; /* ← 超重要 */
-        }
-
-        #ar-container {
-            width: 100vw;
-            height: 100vh;
-            position: fixed;
-        }
-
-        #debug {
-            position: fixed;
-            top: 0;
-            left: 0;
-            color: red;
-            background: rgba(0,0,0,0.5);
-            z-index: 9999;
-            font-size: 20px;
+            object-fit: cover;
         }
     </style>
-    <div id="ar-container"></div>
-    <div id="debug"></div>
-    <button id="rescanBtn" style="
-position: fixed;
-bottom: 20px;
-left: 50%;
-transform: translateX(-50%);
-z-index: 9999;
-padding: 12px 20px;
-font-size: 16px;
-display: none; /* ← 最初は隠す */
-">
-        再スキャン
-    </button>
+
+    <!-- Three.js -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.126/build/three.min.js"></script>
+
+    <!-- GLTFLoader -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.126/examples/js/loaders/GLTFLoader.js"></script>
+
+    <!-- MindAR -->
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.4/dist/mindar-image-three.prod.js"></script>
+
+</head>
+
+<body>
+
     <script>
-        const mindarThree = new window.MINDAR.IMAGE.MindARThree({
-            container: document.body,
-            imageTargetSrc: './targets.mind'
-        });
+        (async () => {
 
-        const { renderer, scene, camera } = mindarThree;
+            console.log("START");
 
-        const geo = new THREE.BoxGeometry(1, 1, 1);
-        const mat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-        const cube = new THREE.Mesh(geo, mat);
+            const mindarThree = new window.MINDAR.IMAGE.MindARThree({
+                container: document.body,
+                imageTargetSrc: './targets.mind'
+            });
 
-        scene.add(cube);
+            const { renderer, scene, camera } = mindarThree;
 
-        await mindarThree.start();
+            // 🔴 デバッグ用：絶対見える赤い箱
+            const geo = new THREE.BoxGeometry(1, 1, 1);
+            const mat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const cube = new THREE.Mesh(geo, mat);
 
-        renderer.setAnimationLoop(() => {
-            renderer.render(scene, camera);
-        });
+            // anchorに追加（マーカー上に出る）
+            const anchor = mindarThree.addAnchor(0);
+            anchor.group.add(cube);
+
+            anchor.onTargetFound = () => {
+                console.log("認識した！");
+            };
+
+            anchor.onTargetLost = () => {
+                console.log("見失った！");
+            };
+
+            // ARスタート
+            console.log("before start");
+            await mindarThree.start();
+            console.log("after start");
+
+            // 描画
+            renderer.setAnimationLoop(() => {
+                renderer.render(scene, camera);
+            });
+
+        })();
     </script>
 
 </body>
