@@ -1,33 +1,43 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>MindAR Simple Marker AR</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- MindAR + Three.js -->
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"></script>
+    <meta charset="UTF-8" />
+    <title>MindAR Camera Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- :white_check_mark: 正しい script タグ -->
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindarprod.js"></script>
 </head>
+
 <body style="margin:0; overflow:hidden;">
     <script>
         window.addEventListener("DOMContentLoaded", async () => {
+
+            console.log("MindAR start");
+
             const mindarThree = new window.MINDAR.IMAGE.MindARThree({
                 container: document.body,
-                imageTargetSrc: "./targets.mind", // マーカー
+                imageTargetSrc: "./marker.mind",
             });
+
             const { renderer, scene, camera } = mindarThree;
+
             // ライト
             const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
             scene.add(light);
-            // Anchor（マーカー番号 0）
+
+            // マーカー0
             const anchor = mindarThree.addAnchor(0);
-            // 表示するオブジェクト（立方体）
+
             const geometry = new THREE.BoxGeometry(0.3, 0.3, 0.3);
             const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
             const cube = new THREE.Mesh(geometry, material);
-            // マーカー認識時に表示
+
             anchor.group.add(cube);
-            // AR開始
+
+            // :white_check_mark: カメラ起動
             await mindarThree.start();
+
             renderer.setAnimationLoop(() => {
                 renderer.render(scene, camera);
             });
