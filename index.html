@@ -2,46 +2,50 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8" />
-    <title>MindAR Camera Test</title>
+    <title>MindAR Image Tracking</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- :white_check_mark: 正しい script タグ -->
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindarprod.js"></script>
+    <!-- :white_check_mark: import map（addons まで定義） -->
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/"
+          }
+        }
+    </script>
 </head>
 
 <body style="margin:0; overflow:hidden;">
-    <script>
-        window.addEventListener("DOMContentLoaded", async () => {
 
-            console.log("MindAR start");
+    <script type="module">
+        import * as THREE from "three";
+        import { MindARThree } from "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js";
 
-            const mindarThree = new window.MINDAR.IMAGE.MindARThree({
-                container: document.body,
-                imageTargetSrc: "./marker.mind",
-            });
+        const mindarThree = new MindARThree({
+            container: document.body,
+            imageTargetSrc: "./marker.mind",
+        });
 
-            const { renderer, scene, camera } = mindarThree;
+        const { renderer, scene, camera } = mindarThree;
 
-            // ライト
-            const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
-            scene.add(light);
+        const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+        scene.add(light);
 
-            // マーカー0
-            const anchor = mindarThree.addAnchor(0);
+        const anchor = mindarThree.addAnchor(0);
 
-            const geometry = new THREE.BoxGeometry(0.3, 0.3, 0.3);
-            const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-            const cube = new THREE.Mesh(geometry, material);
+        const geometry = new THREE.BoxGeometry(0.3, 0.3, 0.3);
+        const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+        const cube = new THREE.Mesh(geometry, material);
 
-            anchor.group.add(cube);
+        anchor.group.add(cube);
 
-            // :white_check_mark: カメラ起動
-            await mindarThree.start();
+        await mindarThree.start();
 
-            renderer.setAnimationLoop(() => {
-                renderer.render(scene, camera);
-            });
+        renderer.setAnimationLoop(() => {
+            renderer.render(scene, camera);
         });
     </script>
+
 </body>
 </html>
