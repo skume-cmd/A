@@ -1,68 +1,18 @@
-<!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://aframe.io/releases/1.4.1/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image-aframe.prod.js"></script>
 </head>
-
 <body>
-    <a-scene  mindar-image="imageTargetSrc: targets.mind;" embedded
-              vr-mode-ui="enabled: false"
-              device-orientation-permission-ui="enabled: false">
-
-        <!-- アセット -->
+    <a-scene mindar-image="imageTargetSrc: targets.mind;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights">
         <a-assets>
-            <a-asset-item id="avatarModel" src="avatar_1.glb"></a-asset-item>
+            <a-asset-item id="greif" src="avatar_1.glb"></a-asset-item>
         </a-assets>
-
-        <!-- マーカー検出用（表示物なし） -->
-        <a-entity    id="marker"
-                     mindar-image-target="targetIndex: 0">
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+        <a-entity mindar-image-target="targetIndex: 0">
+            <a-gltf-model rotation="90 0 0" position="0 0 0" src="#greif">
         </a-entity>
-
-        <!-- カメラ -->
-        <a-camera look-controls="enabled: false">
-
-            <!-- :white_check_mark: 画面中央に出すアバター -->
-            <a-entity      id="avatar"
-                           position="0 -0.3 -1.5"
-                           rotation="0 0 0"
-                           scale="0.6 0.6 0.6"
-                           visible="false">
-
-                <a-gltf-model        src="#avatarModel"
-                                     animation-mixer="clip: Idle; loop: repeat">
-                </a-gltf-model>
-
-            </a-entity>
-
-        </a-camera>
     </a-scene>
-
-    <script>
-        const scene = document.querySelector("a-scene");
-
-        scene.addEventListener("loaded", () => {
-
-            const marker = document.querySelector("#marker");
-            const avatar = document.querySelector("#avatar");
-
-            console.log("marker:", marker); // :white_check_mark: null ではなくなる
-            console.log("avatar:", avatar);
-
-            if (!marker || !avatar) {
-                console.log("要素が見つかりません");
-                return;
-            }
-
-            marker.addEventListener("targetFound", () => {
-                avatar.setAttribute("visible", "true");
-                console.log(":white_check_mark: マーカー検出 → アバター表示");
-            });
-
-        });
-    </script>
-
 </body>
 </html>
