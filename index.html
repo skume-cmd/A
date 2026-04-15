@@ -1,94 +1,42 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8" />
-    <title>MindAR v1.1.4 Stable</title>
-
-    <meta name="viewport"
-             content="width=device-width,
-            initial-scale=1.0,
-            maximum-scale=1.0,
-            user-scalable=no,
-            viewport-fit=cover">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindAR ビデオフィード背景</title>
     <style>
-           html, body {
-                 margin: 0;
-                 padding: 0;
-                 width: 100%;
-                 height: 100%;
-                 overflow: hidden;
-                 background: black;
-
+        body {
+            margin: 0;
+            overflow: hidden;
         }
 
-            #ar-container {
-                 position: fixed;
-                 inset: 0;
-
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
         }
 
-           canvas, video {
-                 position: absolute;
-                 width: 100%;
-                 height: 100%;
-                 object-fit: cover;
-
+        video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1; /* カメラフィードを最背面に */
         }
-
-            #startButton {
-                 position: fixed;
-                 bottom: 20px;
-                 left: 50%;
-                 transform: translateX(-50%);
-                 z-index: 10;
-                 padding: 12px 24px;
-                 font-size: 16px;
-
-        }
-
-
     </style>
-
-    <!-- :white_check_mark: Three.js（必ず先） -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.140.2/build"></script>
-
-    <!-- :white_check_mark: MindAR v1.1.4（script タグ必須） -->
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.1.4/dist/mindar-image-three.prod.js"></script>
 </head>
-
 <body>
+    <div id="container">
+        <!-- ARコンテンツがここに表示されます -->
+    </div>
 
-    <div id="ar-container"></div>
-    <button id="startButton">ARを開始</button>
+    <!-- MindARとThree.jsのスクリプト -->
+    <script src="https://cdn.jsdelivr.net/npm/@mind-ar/webxr@latest/dist/mindar-three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
-    <script>
-        const container = document.getElementById("ar-container");
-
-        const mindarThree = new window.MINDAR.IMAGE.MindARThree({
-            container: container,
-            imageTargetSrc: "./marker.mind",
-        });
-
-        const { renderer, scene, camera } = mindarThree;
-
-        scene.add(new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1));
-
-        const anchor = mindarThree.addAnchor(0);
-        anchor.group.add(
-            new THREE.Mesh(
-                new THREE.BoxGeometry(0.3, 0.3, 0.3),
-                new THREE.MeshStandardMaterial({ color: 0xff0000 })
-            )
-        );
-
-        document.getElementById("startButton").onclick = async () => {
-            await mindarThree.start();
-            renderer.setAnimationLoop(() => {
-                renderer.render(scene, camera);
-            });
-        };
-    </script>
-
+    <!-- カスタムスクリプト -->
+    <script src="app.js"></script>
 </body>
 </html>
