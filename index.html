@@ -8,6 +8,7 @@
         body {
             margin: 0;
             overflow: hidden;
+            background-color: black;
         }
 
         #container {
@@ -23,7 +24,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            z-index: -1; /* カメラフィードを最背面に */
+            z-index: -1;
         }
     </style>
 </head>
@@ -34,7 +35,7 @@
 
     <!-- MindARとThree.jsのスクリプト -->
     <script src="https://cdn.jsdelivr.net/npm/@mind-ar/webxr@latest/dist/mindar-three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r139/three.min.js"></script>
 
     <!-- カスタムスクリプト -->
     <script src="app.js"></script>
