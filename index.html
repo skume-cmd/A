@@ -1,37 +1,71 @@
+<!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://aframe.io/releases/1.4.1/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image-aframe.prod.js"></script>
 </head>
+
 <body>
     <a-scene  mindar-image="imageTargetSrc: targets.mind;"
               vr-mode-ui="enabled: false"
               device-orientation-permission-ui="enabled: false">
 
+        <!-- アセット -->
         <a-assets>
             <a-asset-item id="avatarModel" src="avatar_1.glb"></a-asset-item>
         </a-assets>
 
-        <!-- カメラ -->
-        <a-camera id="camera" look-controls="enabled: false">
+        <!-- マーカー検出用（表示物なし） -->
+        <a-entity    id="markerTrigger"
+                     mindar-image-target="targetIndex: 0">
+        </a-entity>
 
-            <!-- :white_check_mark: 画面中央・常にこちら向き -->
+        <!-- カメラ -->
+        <a-camera look-controls="enabled: false">
+
+            <!-- :white_check_mark: 画面中央に出すアバター -->
             <a-entity      id="avatar"
-                           position="0 0 -1.2"
+                           position="0 -0.3 -1.5"
                            rotation="0 0 0"
+                           scale="0.6 0.6 0.6"
                            visible="false">
 
                 <a-gltf-model        src="#avatarModel"
-                                     scale="0.6 0.6 0.6"
                                      animation-mixer="clip: Idle; loop: repeat">
                 </a-gltf-model>
 
             </a-entity>
 
         </a-camera>
-
     </a-scene>
+
+    <script>
+        const marker = document.getElementById("markerTrigger");
+        const avatar = document.getElementById("avatar");
+
+        let appeared = false;
+
+        // :white_check_mark: マーカー検出で一度だけ登場
+        marker.addEventListener("targetFound", () => {
+            if (!appeared) {
+                avatar.setAttribute("visible", "true");
+
+                // 出現演出（オプション）
+                avatar.setAttribute("scale", "0.001 0.001 0.001");
+                avatar.setAttribute("animation", {
+                    property: "scale",
+                    to: "0.6 0.6 0.6",
+                    dur: 500,
+                    easing: "easeOutBack"
+                });
+
+                appeared = true;
+            }
+        });
+
+        // :white_check_mark: targetLost は何もしない → その場に残る
+    </script>
 
 </body>
 </html>
