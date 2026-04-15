@@ -12,48 +12,42 @@
             viewport-fit=cover">
 
     <style>
-         html, body {
-               margin: 0;
-               padding: 0;
-               width: 100%;
-               height: 100%;
-               overflow: hidden;
-               background: black;
+           html, body {
+                 margin: 0;
+                 padding: 0;
+                 width: 100%;
+                 height: 100%;
+                 overflow: hidden;
+                 background: black;
 
         }
 
-          #ar-container {
-               position: fixed;
-               inset: 0;
+            #ar-container {
+                 position: fixed;
+                 inset: 0;
 
         }
 
-         canvas,
-         video {
-               position: absolute;
-               width: 100% !important;
-               height: 100% !important;
-               object-fit: cover;
-               pointer-events: none; /* :white_check_mark: Android最重要 */
+           canvas, video {
+                 position: absolute;
+                 width: 100%;
+                 height: 100%;
+                 object-fit: cover;
 
         }
 
-          #startButton {
-               position: fixed;
-               bottom: 20px;
-               left: 50%;
-               transform: translateX(-50%);
-               z-index: 9999;
-               pointer-events: auto;
-               touch-action: manipulation;
-               padding: 14px 28px;
-               font-size: 16px;
-               border-radius: 999px;
-               border: none;
-               background: white;
-               color: black;
+            #startButton {
+                 position: fixed;
+                 bottom: 20px;
+                 left: 50%;
+                 transform: translateX(-50%);
+                 z-index: 10;
+                 padding: 12px 24px;
+                 font-size: 16px;
 
         }
+
+
     </style>
 
     <!-- :white_check_mark: Three.js（必ず先） -->
