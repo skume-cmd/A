@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
         .then(stream => {
             video.srcObject = stream;
+            video.play();
         })
         .catch(error => console.error('カメラへのアクセスに失敗しました:', error));
 
