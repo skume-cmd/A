@@ -41,22 +41,24 @@
     </a-scene>
 
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
+        const scene = document.querySelector("a-scene");
+
+        scene.addEventListener("loaded", () => {
 
             const marker = document.querySelector("#marker");
             const avatar = document.querySelector("#avatar");
 
-            // :white_check_mark: nullチェック（デバッグにも便利）
-            console.log("marker:", marker);
+            console.log("marker:", marker); // :white_check_mark: null ではなくなる
             console.log("avatar:", avatar);
 
             if (!marker || !avatar) {
-                console.error("要素が見つかりません");
+                console.log("要素が見つかりません");
                 return;
             }
 
             marker.addEventListener("targetFound", () => {
                 avatar.setAttribute("visible", "true");
+                console.log(":white_check_mark: マーカー検出 → アバター表示");
             });
 
         });
