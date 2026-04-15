@@ -17,7 +17,7 @@
         </a-assets>
 
         <!-- マーカー検出用（表示物なし） -->
-        <a-entity    id="markerTrigger"
+        <a-entity    id="marker"
                      mindar-image-target="targetIndex: 0">
         </a-entity>
 
@@ -41,30 +41,25 @@
     </a-scene>
 
     <script>
-        const marker = document.getElementById("markerTrigger");
-        const avatar = document.getElementById("avatar");
+        document.addEventListener("DOMContentLoaded", () => {
 
-        let appeared = false;
+            const marker = document.querySelector("#marker");
+            const avatar = document.querySelector("#avatar");
 
-        // :white_check_mark: マーカー検出で一度だけ登場
-        marker.addEventListener("targetFound", () => {
-            if (!appeared) {
-                avatar.setAttribute("visible", "true");
+            // :white_check_mark: nullチェック（デバッグにも便利）
+            console.log("marker:", marker);
+            console.log("avatar:", avatar);
 
-                // 出現演出（オプション）
-                avatar.setAttribute("scale", "0.001 0.001 0.001");
-                avatar.setAttribute("animation", {
-                    property: "scale",
-                    to: "0.6 0.6 0.6",
-                    dur: 500,
-                    easing: "easeOutBack"
-                });
-
-                appeared = true;
+            if (!marker || !avatar) {
+                console.error("要素が見つかりません");
+                return;
             }
-        });
 
-        // :white_check_mark: targetLost は何もしない → その場に残る
+            marker.addEventListener("targetFound", () => {
+                avatar.setAttribute("visible", "true");
+            });
+
+        });
     </script>
 
 </body>
