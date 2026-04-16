@@ -10,9 +10,14 @@
             <a-asset-item id="greif" src="avatar_1.glb"></a-asset-item>
         </a-assets>
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-        <a-entity mindar-image-target="targetIndex: 0">
-            <a-gltf-model rotation="90 0 0" position="0 0 0" src="#greif">
+
+        <!-- MindAR のマーカーを検出するエンティティ -->
+        <a-entity mindar-image-target="targetIndex: 0" id="markerEntity">
+            <!-- マーカーが見つかったときに表示される GLTF モデル -->
+            <a-gltf-model rotation="90 0 0" position="0 0 0" src="#greif" visible="ture" id="avatarModel">
+            </a-gltf-model>
         </a-entity>
+
         <script>
             // MindAR のコンポーネントが読み込まれた後、イベントリスナーを設定
             window.addEventListener('load', function () {
