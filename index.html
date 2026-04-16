@@ -1,8 +1,8 @@
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://aframe.io/releases/1.4.1/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image-aframe.prod.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://aframe.io/releases/1.4.1/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image-aframe.prod.js"></script>
 </head>
 <body>
     <a-scene mindar-image="imageTargetSrc: targets.mind;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights">
@@ -14,5 +14,22 @@
             <a-gltf-model rotation="90 0 0" position="0 0 0" src="#greif">
         </a-entity>
     </a-scene>
+    <script>
+        // MindAR のコンポーネントが読み込まれた後、イベントリスナーを設定
+        window.addEventListener('load', function () {
+            const markerEntity = document.getElementById('markerEntity');
+            const avatarModel = document.getElementById('avatarModel');
+
+            markerEntity.addEventListener('mindar-image-target-appeared', function (event) {
+                // マーカーが検出されたときにアバターを表示
+                avatarModel.setAttribute('visible', 'true');
+            });
+
+            markerEntity.addEventListener('mindar-image-target-disappeared', function (event) {
+                // マーカーが消失してもアバターの表示を保持
+                avatarModel.setAttribute('visible', 'true');
+            });
+        });
+    </script>
 </body>
 </html>
