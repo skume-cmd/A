@@ -1,62 +1,18 @@
-<!DOCTYPE html>
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://aframe.io/releases/1.4.1/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image-aframe.prod.js"></script>
 </head>
-
 <body>
-    <a-scene  mindar-image="imageTargetSrc: targets.mind;"
-              embedded
-              vr-mode-ui="enabled: false"
-              device-orientation-permission-ui="enabled: false">
-
-        <!-- assets -->
+    <a-scene mindar-image="imageTargetSrc: targets.mind;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights">
         <a-assets>
             <a-asset-item id="greif" src="avatar_1.glb"></a-asset-item>
         </a-assets>
-
-        <!-- :white_check_mark: マーカー検出専用（何も表示しない） -->
-        <a-entity id="marker" mindar-image-target="targetIndex: 0"></a-entity>
-
-        <!-- :white_check_mark: カメラ -->
-        <a-camera look-controls="enabled: false">
-
-            <!-- :white_check_mark: ここが重要：マーカーの外 -->
-            <a-entity      id="avatar"
-                           position="0 -0.3 -1.5"
-                           scale="0.6 0.6 0.6"
-                           visible="false">
-
-                <a-gltf-model        src="#greif"
-                                     animation-mixer="clip: Idle; loop: repeat">
-                </a-gltf-model>
-
-            </a-entity>
-
-        </a-camera>
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+        <a-entity mindar-image-target="targetIndex: 0">
+            <a-gltf-model rotation="90 0 0" position="0 0 0" src="#greif">
+        </a-entity>
     </a-scene>
-
-    <script>
-        const scene = document.querySelector("a-scene");
-
-        scene.addEventListener("renderstart", () => {
-            const marker = document.getElementById("marker");
-            const avatar = document.getElementById("avatar");
-
-            let appeared = false;
-
-            marker.addEventListener("targetFound", () => {
-                if (!appeared) {
-                    avatar.setAttribute("visible", "true");
-                    appeared = true;
-                    console.log(":white_check_mark: アバター表示（消えない）");
-                }
-            });
-
-            // :white_check_mark: targetLost では何もしない
-        });
-    </script>
 </body>
 </html>
