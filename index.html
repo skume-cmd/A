@@ -29,7 +29,7 @@
         const anchor = mindarThree.addAnchor(0);
 
         const loader = new GLTFLoader();
-        loader.load('https://raw.githubusercontent.com/skume-cmd/A/main/models/character.glb', (gltf) => {
+        loader.load('models/character.glb', (gltf) => {
             const model = gltf.scene;
             model.scale.set(0.05, 0.05, 0.05);
             anchor.group.add(model);
