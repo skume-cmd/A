@@ -20,11 +20,7 @@
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
         <!-- MindAR のマーカーを検出するエンティティ -->
-        <a-entity mindar-image-target="targetIndex: 0" id="markerEntity">
-            <!-- マーカーが見つかったときに表示される GLTF モデル -->
-            <a-gltf-model rotation="90 0 0" position="0 0 0" src="#greif" visible="false" id="avatarModel">
-            </a-gltf-model>
-        </a-entity>
+
 
         <!-- JavaScript を用いてマーカーの検出状態を監視 -->
         <script>
