@@ -1,58 +1,37 @@
+<!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://aframe.io/releases/1.4.1/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image-aframe.prod.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"></script>
 </head>
-<body>
-    <a-scene mindar-image="imageTargetSrc: targets.mind;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights">
-        <a-assets>
-            <a-asset-item id="greif" src="avatar_1.glb"></a-asset-item>
-        </a-assets>
-        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+<body style="margin:0; overflow:hidden;">
+    <script type="module">
+        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js';
+        import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
 
-        <!-- MindAR のマーカーを検出するエンティティ -->
-        <a-entity mindar-image-target="targetIndex: 0" id="markerEntity">
-            <!-- マーカーが見つかったときに表示される GLTF モデル -->
-            <a-gltf-model rotation="90 0 0" position="0 0 0" src="#greif" visible="ture" id="avatarModel">
-            </a-gltf-model>
-        </a-entity>
+        const mindarThree = new window.MINDAR.IMAGE.MindARThree({
+            container: document.body,
+            imageTargetSrc: './targets.mind', // ← マーカーファイル
+        });
 
-        <script>
-            AFRAME.registerComponent('animate-avatar', {
-                dependencies: ['gltf'],
-                init() {
-                    const el = this.el;
-                    const model = el.getObject3D('mesh');
+        const { renderer, scene, camera } = mindarThree;
 
-                    if (model && model.animations.length > 0) {
-                        // AnimationMixer を初期化
-                        const mixer = new THREE.AnimationMixer(model);
-                        let activeAnimation;
+        // アンカー（マーカー0番に紐づける）
+        const anchor = mindarThree.addAnchor(0);
 
-                        // アニメーションクリップを取得し、再生する
-                        const clip = model.animations[0];
-                        const action = mixer.clipAction(clip);
+        // GLBを読み込む
+        const loader = new GLTFLoader();
+        loader.load('./models/charavter.glb', (gltf) => {
+            const model = gltf.scene;
+            model.scale.set(0.1, 0.1, 0.1); // ← サイズ調整
+            anchor.group.add(model);
+        });
 
-                        action.play();
-
-                        // アニメーションの更新処理
-                        this.tick = function (time, delta) {
-                            if (mixer) {
-                                mixer.update(delta);
-                            }
-                        };
-                    }
-                },
-            });
-
-            // マーカーが検出されたときに animation-avatar コンポーネントを追加
-            document.querySelector('a-entity[mindar-image-target]').addEventListener('mindar-image-target-appeared', function () {
-                const avatar = document.getElementById('avatar');
-                avatar.setAttribute('animate-avatar', '');
-            });
-        </script>
-    </a-scene>
-    
+        // 開始
+        await mindarThree.start();
+        renderer.setAnimationLoop(() => {
+            renderer.render(scene, camera);
+        });
+    </script>
 </body>
 </html>
