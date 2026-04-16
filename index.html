@@ -19,20 +19,37 @@
         </a-entity>
 
         <script>
-            // MindAR のコンポーネントが読み込まれた後、イベントリスナーを設定
-            window.addEventListener('load', function () {
-                const markerEntity = document.getElementById('markerEntity');
-                const avatarModel = document.getElementById('avatarModel');
+            AFRAME.registerComponent('animate-avatar', {
+                dependencies: ['gltf'],
+                init() {
+                    const el = this.el;
+                    const model = el.getObject3D('mesh');
 
-                markerEntity.addEventListener('mindar-image-target-appeared', function (event) {
-                    // マーカーが検出されたときにアバターを表示
-                    avatarModel.setAttribute('visible', 'true');
-                });
+                    if (model && model.animations.length > 0) {
+                        // AnimationMixer を初期化
+                        const mixer = new THREE.AnimationMixer(model);
+                        let activeAnimation;
 
-                markerEntity.addEventListener('mindar-image-target-disappeared', function (event) {
-                    // マーカーが消失してもアバターの表示を保持
-                    avatarModel.setAttribute('visible', 'true');
-                });
+                        // アニメーションクリップを取得し、再生する
+                        const clip = model.animations[0];
+                        const action = mixer.clipAction(clip);
+
+                        action.play();
+
+                        // アニメーションの更新処理
+                        this.tick = function (time, delta) {
+                            if (mixer) {
+                                mixer.update(delta);
+                            }
+                        };
+                    }
+                },
+            });
+
+            // マーカーが検出されたときに animation-avatar コンポーネントを追加
+            document.querySelector('a-entity[mindar-image-target]').addEventListener('mindar-image-target-appeared', function () {
+                const avatar = document.getElementById('avatar');
+                avatar.setAttribute('animate-avatar', '');
             });
         </script>
     </a-scene>
