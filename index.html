@@ -27,7 +27,23 @@
         </a-entity>
 
         <!-- JavaScript を用いてマーカーの検出状態を監視 -->
-        
+        <script>
+            // MindAR のコンポーネントが読み込まれた後、イベントリスナーを設定
+            window.addEventListener('load', function () {
+                const markerEntity = document.getElementById('markerEntity');
+                const avatarModel = document.getElementById('avatarModel');
+
+                markerEntity.addEventListener('mindar-image-target-appeared', function (event) {
+                    // マーカーが検出されたときにアバターを表示
+                    avatarModel.setAttribute('visible', 'true');
+                });
+
+                markerEntity.addEventListener('mindar-image-target-disappeared', function (event) {
+                    // マーカーが消失してもアバターの表示を保持
+                    avatarModel.setAttribute('visible', 'true');
+                });
+            });
+        </script>
     </a-scene>
 </body>
 </html>
