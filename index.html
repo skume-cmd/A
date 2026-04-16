@@ -2,32 +2,36 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js",
+            "three/examples/jsm/loaders/GLTFLoader": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/loaders/GLTFLoader.js"
+          }
+        }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"></script>
 </head>
 <body style="margin:0; overflow:hidden;">
     <script type="module">
-        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js';
-        import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/loaders/GLTFLoader.js';
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
         const mindarThree = new window.MINDAR.IMAGE.MindARThree({
             container: document.body,
-            imageTargetSrc: './targets.mind', // ← マーカーファイル
+            imageTargetSrc: './targets.mind',
         });
 
         const { renderer, scene, camera } = mindarThree;
-
-        // アンカー（マーカー0番に紐づける）
         const anchor = mindarThree.addAnchor(0);
 
-        // GLBを読み込む
         const loader = new GLTFLoader();
-        loader.load('https://raw.githubusercontent.com/skume-cmd/A/models/character.glb', (gltf) => {
+        loader.load('https://raw.githubusercontent.com/skume-cmd/A/main/models/character.glb', (gltf) => {
             const model = gltf.scene;
-            model.scale.set(0.03, 0.03, 0.03); // ← サイズ調整
+            model.scale.set(0.05, 0.05, 0.05);
             anchor.group.add(model);
         });
 
-        // 開始
         await mindarThree.start();
         renderer.setAnimationLoop(() => {
             renderer.render(scene, camera);
