@@ -1,44 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script type="importmap">
-        {
-          "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js",
-            "three/examples/jsm/loaders/GLTFLoader": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/loaders/GLTFLoader.js"
-          }
-        }
-    </script>
+    <meta charset="utf-8">
+    <title>MindAR A-Frame Avatar</title>
+
+    <!-- A-Frame -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+
+    <!-- MindAR A-Frame版 -->
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 </head>
+
 <body style="margin:0; overflow:hidden;">
+    <a-scene    mindar-image="imageTargetSrc: targets.mind;"
+                vr-mode-ui="enabled: false"
+                device-orientation-permission-ui="enabled: false"
+                renderer="colorManagement: true"
+              >
 
-    <!-- MindARをbodyの先頭に移動 -->
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"></script>
+        <!-- アセット定義（ここは asset だけ） -->
+        <a-assets>
+            <a-asset-item id="avatar" src="models/character.glb"></a-asset-item>
+        </a-assets>
 
-    <script type="module">
-        import * as THREE from 'three';
-        import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+        <!-- マーカーに紐づく表示物 -->
+        <a-entity mindar-image-target="targetIndex: 0">
+            <a-entity        gltf-model="#avatar"
+                             scale="0.5 0.5 0.5"
+                             animation-mixer
+                           ></a-entity>
+        </a-entity>
 
-        const mindarThree = new window.MINDAR.IMAGE.MindARThree({
-            container: document.body,
-            imageTargetSrc: './targets.mind',
-        });
-
-        const { renderer, scene, camera } = mindarThree;
-        const anchor = mindarThree.addAnchor(0);
-
-        const loader = new GLTFLoader();
-        loader.load('models/character.glb', (gltf) => {
-            const model = gltf.scene;
-            model.scale.set(0.05, 0.05, 0.05);
-            anchor.group.add(model);
-        });
-
-        await mindarThree.start();
-        renderer.setAnimationLoop(() => {
-            renderer.render(scene, camera);
-        });
-    </script>
+        <a-camera position="0 0 0" look-controls="enabled:false"></a-camera>
+    </a-scene>
 </body>
 </html>
