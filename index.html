@@ -23,7 +23,7 @@
         const loader = new GLTFLoader();
         loader.load('./models/charavter.glb', (gltf) => {
             const model = gltf.scene;
-            model.scale.set(0.1, 0.1, 0.1); // ← サイズ調整
+            model.scale.set(0.03, 0.03, 0.03); // ← サイズ調整
             anchor.group.add(model);
         });
 
