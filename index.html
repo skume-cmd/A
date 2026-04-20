@@ -182,6 +182,11 @@
                 // 元の位置に浮き上がるアニメーション
                 avatar.setAttribute("animation__appear",
                     "property: position; from: 0 -0.3 0.3; to: 0 0 0.3; dur: 400; easing: easeOutQuad");
+
+                avatar.addEventListener("animation-finished", () => {
+                    avatar.setAttribute("animation-mixer",
+                        "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
+                }, { once: true }); // once:true で1回だけ発火
             });
 
             function spawnParticles() {
