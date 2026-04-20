@@ -33,7 +33,35 @@
                           animation__rotate="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear">
             </a-gltf-model>
         </a-entity>
-
+        <a-plane id="speech"
+                 position="0 0.5 0.3"
+                 width="1"
+                 height="0.3"
+                 color="#ffffff"
+                 text="value: こんにちは！; align: center; color: black"
+                 visible="false"></a-plane>
     </a-scene>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const target = document.querySelector("#target");
+            const speech = document.querySelector("#speech");
+            const audio = document.querySelector("#voice");
+
+            // マーカー検出時
+            target.addEventListener("targetFound", () => {
+                speech.setAttribute("visible", true);
+
+                audio.currentTime = 0;
+                audio.play();
+            });
+
+            // マーカー外れたとき
+            target.addEventListener("targetLost", () => {
+                speech.setAttribute("visible", false);
+                audio.pause();
+            });
+        });
+    </script>
 </body>
 </html>
