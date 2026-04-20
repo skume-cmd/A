@@ -166,21 +166,50 @@
 
             target.addEventListener("targetFound", () => {
                 plane.setAttribute("visible", true);
-                const particles = document.querySelector("#particles");
-                particles.setAttribute("visible", true);
+                spawnParticles();
 
-                // 各sphereのアニメーションをリスタート
-                particles.querySelectorAll("a-sphere").forEach(p => {
-                    const origPos = p.getAttribute("position");
-                    p.components.animation.beginAnimation();
-                    p.components["animation__fade"].beginAnimation();
-                });
+                // アバターを一時的に下に隠してからジャンプ登場
+                const avatar = document.querySelector("a-gltf-model");
 
-                // 1秒後に非表示
-                setTimeout(() => {
-                    particles.setAttribute("visible", false);
-                }, 1000);
+                // 少し下の位置からスタート
+                avatar.setAttribute("position", "0 -0.3 0.3");
+
+                // ジャンプの頂点あたり（例：0.3秒目）から再生
+                avatar.setAttribute("animation-mixer",
+                    "clip: HumanArmature|HumanArmature|Man_Jump; loop: repeat; startAt: 300");
+
+                // 元の位置に浮き上がるアニメーション
+                avatar.setAttribute("animation__appear",
+                    "property: position; from: 0 -0.3 0.3; to: 0 0 0.3; dur: 400; easing: easeOutQuad");
             });
+
+            function spawnParticles() {
+                const target = document.querySelector("#target");
+                const colors = ["#FFD700", "#FF69B4", "#00BFFF", "#7FFF00", "#FF4500", "#DA70D6", "#FF8C00", "#ADFF2F"];
+                const count = 10;
+
+                for (let i = 0; i < count; i++) {
+                    const p = document.createElement("a-sphere");
+                    const angle = (i / count) * Math.PI * 2;
+                    const dist = 0.4 + Math.random() * 0.3;
+                    const tx = Math.cos(angle) * dist;
+                    const ty = 0.3 + Math.random() * 0.5;
+                    const dur = 600 + Math.floor(Math.random() * 400);
+                    const color = colors[i % colors.length];
+
+                    p.setAttribute("position", `0 0.1 0.3`);
+                    p.setAttribute("radius", 0.015 + Math.random() * 0.015);
+                    p.setAttribute("color", color);
+                    p.setAttribute("material", "transparent: true; opacity: 1");
+                    p.setAttribute("animation", `property: position; to: ${tx} ${ty} 0.3; dur: ${dur}; easing: easeOutQuad`);
+                    p.setAttribute("animation__fade", `property: components.material.material.opacity; from: 1; to: 0; dur: ${dur}`);
+
+                    target.appendChild(p);
+
+                    // アニメーション終了後に削除
+                    setTimeout(() => p.parentNode && p.parentNode.removeChild(p), dur + 100);
+                }
+            }
             target.addEventListener("targetLost", () => {
                 plane.setAttribute("visible", false);
                 voices.forEach(v => { v.pause(); v.currentTime = 0; });
