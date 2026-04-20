@@ -60,17 +60,43 @@
     </a-scene>
 
     <script>
-        // ── 吹き出し描画関数 ──────────────────────────
         function drawBubble(text) {
             const canvas = document.getElementById("bubble-canvas");
             const ctx = canvas.getContext("2d");
-            const W = canvas.width;   // 512
-            const H = canvas.height;  // 256
+            const W = canvas.width;
+            const H = canvas.height;
 
             ctx.clearRect(0, 0, W, H);
 
-            // 角丸の吹き出し本体
-            const bx = 16, by = 16, bw = W - 32, bh = H - 60, r = 24;
+            const fontSize = 44;
+            const lineHeight = fontSize * 1.4;
+            const maxWidth = W - 80;
+            ctx.font = `bold ${fontSize}px sans-serif`;
+
+            const paragraphs = text.split("\n");
+            const lines = [];
+            paragraphs.forEach(para => {
+                let line = "";
+                for (const char of para) {
+                    const test = line + char;
+                    if (ctx.measureText(test).width > maxWidth && line !== "") {
+                        lines.push(line);
+                        line = char;
+                    } else {
+                        line = test;
+                    }
+                }
+                lines.push(line);
+            });
+
+            const textBlockH = lines.length * lineHeight;
+            const padV = 28;
+            const tailH = 36;
+            const bx = 16, by = 16;
+            const bw = W - 32;
+            const bh = textBlockH + padV * 2;
+            const r = 24;
+
             ctx.beginPath();
             ctx.moveTo(bx + r, by);
             ctx.lineTo(bx + bw - r, by);
@@ -78,7 +104,7 @@
             ctx.lineTo(bx + bw, by + bh - r);
             ctx.arcTo(bx + bw, by + bh, bx + bw - r, by + bh, r);
             ctx.lineTo(W / 2 + 28, by + bh);
-            ctx.lineTo(W / 2, by + bh + 40); // しっぽ先端
+            ctx.lineTo(W / 2, by + bh + tailH);
             ctx.lineTo(W / 2 - 28, by + bh);
             ctx.lineTo(bx + r, by + bh);
             ctx.arcTo(bx, by + bh, bx, by + bh - r, r);
@@ -86,34 +112,31 @@
             ctx.arcTo(bx, by, bx + r, by, r);
             ctx.closePath();
 
-            // 影
-            ctx.shadowColor = "rgba(0,0,0,0.25)";
-            ctx.shadowBlur = 16;
+            ctx.shadowColor = "rgba(0,0,0,0.2)";
+            ctx.shadowBlur = 14;
             ctx.shadowOffsetY = 4;
             ctx.fillStyle = "white";
             ctx.fill();
             ctx.shadowColor = "transparent";
-
-            // 枠線
-            ctx.strokeStyle = "rgba(0,0,0,0.12)";
+            ctx.strokeStyle = "rgba(0,0,0,0.1)";
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // テキスト（日本語OK）
             ctx.fillStyle = "#222222";
-            ctx.font = "bold 52px sans-serif";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.fillText(text, W / 2, (by + bh) / 2 + by / 2);
 
-            // A-Frame にテクスチャ更新を通知
+            const startY = by + padV + fontSize / 2;
+            lines.forEach((line, i) => {
+                ctx.fillText(line, W / 2, startY + i * lineHeight);
+            });
+
             const plane = document.getElementById("bubble-plane");
             if (plane && plane.components.material) {
                 plane.components.material.material.map.needsUpdate = true;
             }
         }
 
-        // ── メイン処理 ────────────────────────────────
         document.addEventListener("DOMContentLoaded", () => {
             const target = document.querySelector("#target");
             const plane = document.querySelector("#bubble-plane");
@@ -123,27 +146,22 @@
                 document.querySelector("#voice3"),
             ];
             const texts = [
-                "こんにちは！\n私はパソナ日本総務部の\nナビゲーターです",
-                "ジャンプしてます！",
-                "タップで進みます！",
+                "こんにちは！\n私はナビゲーターです",
+                "私たちは、",
+                "ご紹介します。",
             ];
             let index = 0;
 
-            // 初期描画
-            drawBubble("タップしてください");
+            drawBubble("タップしてください"); // ← ここだけでOK
 
-            // マーカー検出
             target.addEventListener("targetFound", () => {
                 plane.setAttribute("visible", true);
             });
-
-            // マーカー消失
             target.addEventListener("targetLost", () => {
                 plane.setAttribute("visible", false);
                 voices.forEach(v => { v.pause(); v.currentTime = 0; });
             });
 
-            // タップで次のセリフへ
             document.body.addEventListener("click", () => {
                 voices.forEach(v => { v.pause(); v.currentTime = 0; });
                 drawBubble(texts[index]);
