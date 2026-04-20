@@ -1,60 +1,23 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>MindAR Avatar Animation</title>
+<html lang="en">
 
-    <script src="./js/three.min.js"></script>
-    <script src="./js/mindar.js"></script>
-    <script src="./js/GLTFLoader.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>show3DmodelPage</title>
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/examples/jsm/loaders/GLTFLoader": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js"
+          }
+        }
+    </script>
+    <script type="module" src="./main.js"></script>
 </head>
 
 <body>
-    <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-
-            const mindarThree = new window.MINDAR.IMAGE.MindARThree({
-                container: document.body,
-                imageTargetSrc: "./targets.mind" // マーカー
-            });
-
-            const { renderer, scene, camera } = mindarThree;
-
-            // マーカー（0番目）
-            const anchor = mindarThree.addAnchor(0);
-
-            // ライト
-            const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
-            scene.add(light);
-
-            // モデル読み込み
-            const loader = new THREE.GLTFLoader();
-            let mixer;
-
-            loader.load("./avatar.glb", (gltf) => {
-                const model = gltf.scene;
-
-                model.scale.set(0.5, 0.5, 0.5);
-                model.position.set(0, 0, 0);
-
-                anchor.group.add(model);
-
-                // 🎬 アニメーション
-                mixer = new THREE.AnimationMixer(model);
-                gltf.animations.forEach((clip) => {
-                    mixer.clipAction(clip).play();
-                });
-            });
-
-            // スタート
-            await mindarThree.start();
-
-            renderer.setAnimationLoop(() => {
-                if (mixer) mixer.update(0.016); // 約60FPS
-                renderer.render(scene, camera);
-            });
-
-        });
-    </script>
+    <!-- // 3Dモデルを表示させるcanvas要素を作成 -->
+    <canvas id="canvas"></canvas>
 </body>
 </html>
