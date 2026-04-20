@@ -74,6 +74,20 @@
             ctx.font = `bold ${fontSize}px sans-serif`;
 
             const paragraphs = text.split("\n");
+            const lines = [];
+            paragraphs.forEach(para => {
+                let line = "";
+                for (const char of para) {
+                    const test = line + char;
+                    if (ctx.measureText(test).width > maxWidth && line !== "") {
+                        lines.push(line);
+                        line = char;
+                    } else {
+                        line = test;
+                    }
+                }
+                lines.push(line);
+            });
 
             const textBlockH = lines.length * lineHeight;
             const padV = 28;
