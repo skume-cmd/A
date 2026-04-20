@@ -43,15 +43,18 @@
                           animation__rotate="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear">
             </a-gltf-model>
 
-            <!-- 吹き出し -->
-            <a-plane id="speech"
-                     position="0 0.6 0.3"
+            <!-- 吹き出し背景 -->
+            <a-plane position="0 0.6 0.3"
                      width="0.7"
                      height="0.25"
-                     material="color: white; opacity: 0.8; shader: flat"
-                     text="value: タップしてください; align: center; color: black; font: https://cdn.aframe.io/fonts/mozillavr.fnt"
-                     visible="true">
+                     material="color: white; opacity: 0.8; shader: flat">
             </a-plane>
+
+            <!-- ★テキストは別にする -->
+            <a-entity id="speech"
+                      position="0 0.6 0.31"
+                      text="value: タップしてください; align: center; color: black; width: 2">
+            </a-entity>
 
         </a-entity>
 
