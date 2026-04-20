@@ -13,6 +13,7 @@
     </style>
 </head>
 <body>
+
     <a-scene mindar-image="imageTargetSrc: ./targets.mind;"
              color-space="sRGB"
              renderer="colorManagement: true, physicallyCorrectLights"
@@ -24,6 +25,10 @@
             <audio id="voice1" src="./voice1.mp3" preload="auto"></audio>
             <audio id="voice2" src="./voice2.mp3" preload="auto"></audio>
             <audio id="voice3" src="./voice3.mp3" preload="auto"></audio>
+
+            <!-- 吹き出し用Canvas（512x256px） -->
+            <canvas id="bubble-canvas" width="512" height="256"
+                    style="display:none"></canvas>
         </a-assets>
 
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -39,80 +44,109 @@
                           animation__rotate="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear">
             </a-gltf-model>
 
-            <!-- 吹き出しグループ（まとめて表示/非表示） -->
-            <a-entity id="bubble-group" visible="false">
+            <!-- 吹き出しPlane：Canvasをテクスチャとして使う -->
+            <a-plane id="bubble-plane"
+                     position="0 0.65 0.3"
+                     width="0.8" height="0.4"
+                     visible="false"
+                     material="src: #bubble-canvas;
+                  transparent: true;
+                  alphaTest: 0.1;
+                  shader: flat;
+                  npot: true">
+            </a-plane>
 
-                <!-- 吹き出し本体 -->
-                <a-plane position="0 0.6 0.3"
-                         width="0.7" height="0.25"
-                         material="color: white; opacity: 0.9; shader: flat">
-                </a-plane>
-
-                <!-- しっぽ（三角形） -->
-                <a-triangle position="0 0.46 0.3"
-                            geometry="vertexA: 0 0 0; vertexB: -0.06 0.09 0; vertexC: 0.06 0.09 0"
-                            material="color: white; shader: flat; side: double">
-                </a-triangle>
-
-                <!-- テキスト -->
-                <a-entity id="speech"
-                          position="0 0.6 0.31"
-                          text="value: タップしてください;
-                          align: center;
-                          color: #222222;
-                          width: 0.65;
-                          wrapCount: 18;
-                          font: https://cdn.jsdelivr.net/npm/aframe/examples/test/fonts/noto-sans/NotoSansJP-Regular-msdf.json;
-                          negate: false">
-                </a-entity>
-
-            </a-entity> <!-- /bubble-group -->
-
-        </a-entity> <!-- /target -->
-
+        </a-entity>
     </a-scene>
 
     <script>
+        // ── 吹き出し描画関数 ──────────────────────────
+        function drawBubble(text) {
+            const canvas = document.getElementById("bubble-canvas");
+            const ctx = canvas.getContext("2d");
+            const W = canvas.width;   // 512
+            const H = canvas.height;  // 256
+
+            ctx.clearRect(0, 0, W, H);
+
+            // 角丸の吹き出し本体
+            const bx = 16, by = 16, bw = W - 32, bh = H - 60, r = 24;
+            ctx.beginPath();
+            ctx.moveTo(bx + r, by);
+            ctx.lineTo(bx + bw - r, by);
+            ctx.arcTo(bx + bw, by, bx + bw, by + r, r);
+            ctx.lineTo(bx + bw, by + bh - r);
+            ctx.arcTo(bx + bw, by + bh, bx + bw - r, by + bh, r);
+            ctx.lineTo(W / 2 + 28, by + bh);
+            ctx.lineTo(W / 2, by + bh + 40); // しっぽ先端
+            ctx.lineTo(W / 2 - 28, by + bh);
+            ctx.lineTo(bx + r, by + bh);
+            ctx.arcTo(bx, by + bh, bx, by + bh - r, r);
+            ctx.lineTo(bx, by + r);
+            ctx.arcTo(bx, by, bx + r, by, r);
+            ctx.closePath();
+
+            // 影
+            ctx.shadowColor = "rgba(0,0,0,0.25)";
+            ctx.shadowBlur = 16;
+            ctx.shadowOffsetY = 4;
+            ctx.fillStyle = "white";
+            ctx.fill();
+            ctx.shadowColor = "transparent";
+
+            // 枠線
+            ctx.strokeStyle = "rgba(0,0,0,0.12)";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // テキスト（日本語OK）
+            ctx.fillStyle = "#222222";
+            ctx.font = "bold 52px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(text, W / 2, (by + bh) / 2 + by / 2);
+
+            // A-Frame にテクスチャ更新を通知
+            const plane = document.getElementById("bubble-plane");
+            if (plane && plane.components.material) {
+                plane.components.material.material.map.needsUpdate = true;
+            }
+        }
+
+        // ── メイン処理 ────────────────────────────────
         document.addEventListener("DOMContentLoaded", () => {
             const target = document.querySelector("#target");
-            const speech = document.querySelector("#speech");
-            const bubbleGroup = document.querySelector("#bubble-group");
+            const plane = document.querySelector("#bubble-plane");
             const voices = [
                 document.querySelector("#voice1"),
                 document.querySelector("#voice2"),
-                document.querySelector("#voice3")
+                document.querySelector("#voice3"),
             ];
             const texts = [
                 "こんにちは！",
                 "ジャンプしてます！",
-                "タップで進みます！"
+                "タップで進みます！",
             ];
             let index = 0;
 
-            // マーカー検出 → 吹き出しグループを表示
+            // 初期描画
+            drawBubble("タップしてください");
+
+            // マーカー検出
             target.addEventListener("targetFound", () => {
-                bubbleGroup.setAttribute("visible", true);
+                plane.setAttribute("visible", true);
             });
 
-            // マーカー消失 → 吹き出しグループを非表示
+            // マーカー消失
             target.addEventListener("targetLost", () => {
-                bubbleGroup.setAttribute("visible", false);
+                plane.setAttribute("visible", false);
                 voices.forEach(v => { v.pause(); v.currentTime = 0; });
             });
 
-            // タップ → テキスト更新 & 音声再生
+            // タップで次のセリフへ
             document.body.addEventListener("click", () => {
                 voices.forEach(v => { v.pause(); v.currentTime = 0; });
-
-                // オブジェクト形式で渡す（プロパティがリセットされない）
-                speech.setAttribute("text", {
-                    value: texts[index],
-                    align: "center",
-                    color: "#222222",
-                    width: 0.65,
-                    wrapCount: 18
-                });
-
+                drawBubble(texts[index]);
                 voices[index].play().catch(e => console.warn("再生エラー:", e));
                 index = (index + 1) % texts.length;
             });
