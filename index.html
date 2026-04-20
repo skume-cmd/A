@@ -47,7 +47,7 @@
             <!-- 吹き出しPlane：Canvasをテクスチャとして使う -->
             <a-plane id="bubble-plane"
                      position="0 0.65 0.3"
-                     width="1.0" height="0.4"
+                     width="1.3" height="0.4"
                      visible="false"
                      material="src: #bubble-canvas;
                   transparent: true;
@@ -70,24 +70,9 @@
 
             const fontSize = 44;
             const lineHeight = fontSize * 1.4;
-            const maxWidth = W - 80;
             ctx.font = `bold ${fontSize}px sans-serif`;
 
-            const paragraphs = text.split("\n");
-            const lines = [];
-            paragraphs.forEach(para => {
-                let line = "";
-                for (const char of para) {
-                    const test = line + char;
-                    if (ctx.measureText(test).width > maxWidth && line !== "") {
-                        lines.push(line);
-                        line = char;
-                    } else {
-                        line = test;
-                    }
-                }
-                lines.push(line);
-            });
+            const lines = text.split("\n");
 
             const textBlockH = lines.length * lineHeight;
             const padV = 28;
