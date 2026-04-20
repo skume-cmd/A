@@ -43,7 +43,32 @@
                           animation-mixer="clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat"
                           rotation="90 0 0">
             </a-gltf-model>
-
+            <a-entity id="particles" visible="false">
+                <a-sphere position=" 0.0  0.2 0.3" radius="0.02" color="#FFD700"
+                          animation="property: position; to:  0.3  0.6 0.3; dur: 800; easing: easeOutQuad"
+                          animation__fade="property: components.material.material.opacity; from: 1; to: 0; dur: 800"
+                          material="transparent: true"></a-sphere>
+                <a-sphere position=" 0.1  0.0 0.3" radius="0.02" color="#FF69B4"
+                          animation="property: position; to:  0.5  0.4 0.3; dur: 700; easing: easeOutQuad"
+                          animation__fade="property: components.material.material.opacity; from: 1; to: 0; dur: 700"
+                          material="transparent: true"></a-sphere>
+                <a-sphere position="-0.1  0.0 0.3" radius="0.02" color="#00BFFF"
+                          animation="property: position; to: -0.5  0.4 0.3; dur: 900; easing: easeOutQuad"
+                          animation__fade="property: components.material.material.opacity; from: 1; to: 0; dur: 900"
+                          material="transparent: true"></a-sphere>
+                <a-sphere position=" 0.0 -0.1 0.3" radius="0.02" color="#7FFF00"
+                          animation="property: position; to:  0.2  0.7 0.3; dur: 750; easing: easeOutQuad"
+                          animation__fade="property: components.material.material.opacity; from: 1; to: 0; dur: 750"
+                          material="transparent: true"></a-sphere>
+                <a-sphere position="-0.2  0.1 0.3" radius="0.02" color="#FF4500"
+                          animation="property: position; to: -0.3  0.7 0.3; dur: 850; easing: easeOutQuad"
+                          animation__fade="property: components.material.material.opacity; from: 1; to: 0; dur: 850"
+                          material="transparent: true"></a-sphere>
+                <a-sphere position=" 0.2  0.1 0.3" radius="0.02" color="#DA70D6"
+                          animation="property: position; to:  0.4  0.7 0.3; dur: 650; easing: easeOutQuad"
+                          animation__fade="property: components.material.material.opacity; from: 1; to: 0; dur: 650"
+                          material="transparent: true"></a-sphere>
+            </a-entity>
             <!-- 吹き出しPlane：Canvasをテクスチャとして使う -->
             <a-plane id="bubble-plane"
                      position="0 0.65 0.3"
@@ -141,6 +166,20 @@
 
             target.addEventListener("targetFound", () => {
                 plane.setAttribute("visible", true);
+                const particles = document.querySelector("#particles");
+                particles.setAttribute("visible", true);
+
+                // 各sphereのアニメーションをリスタート
+                particles.querySelectorAll("a-sphere").forEach(p => {
+                    const origPos = p.getAttribute("position");
+                    p.components.animation.beginAnimation();
+                    p.components["animation__fade"].beginAnimation();
+                });
+
+                // 1秒後に非表示
+                setTimeout(() => {
+                    particles.setAttribute("visible", false);
+                }, 1000);
             });
             target.addEventListener("targetLost", () => {
                 plane.setAttribute("visible", false);
