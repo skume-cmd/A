@@ -1,55 +1,21 @@
-<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <title>MindAR Avatar Animation</title>
-
-    <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-three.prod.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 </head>
 <body>
-    <script>
-        document.addEventListener("DOMContentLoaded", async () => {
+    <a-scene mindar-image="imageTargetSrc: https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/card.mind;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+        <a-assets>
+            <img id="card" src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/card.png" />
+            <a-asset-item id="avatarModel" src="./models/charactar.glb"></a-asset-item>
+        </a-assets>
 
-            const mindarThree = new window.MINDAR.IMAGE.MindARThree({
-                container: document.body,
-                imageTargetSrc: "./targets.mind"
-            });
-
-            const { renderer, scene, camera } = mindarThree;
-
-            const anchor = mindarThree.addAnchor(0);
-
-            const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
-            scene.add(light);
-
-            let mixer;
-            const clock = new THREE.Clock();
-
-            const loader = new THREE.GLTFLoader();
-            loader.load("./avatar.glb", (gltf) => {
-
-                const model = gltf.scene;
-                model.scale.set(0.5, 0.5, 0.5);
-                anchor.group.add(model);
-
-                mixer = new THREE.AnimationMixer(model);
-
-                gltf.animations.forEach((clip) => {
-                    const action = mixer.clipAction(clip);
-                    action.fadeIn(0.5).play();
-                });
-            });
-
-            await mindarThree.start();
-
-            renderer.setAnimationLoop(() => {
-                if (mixer) mixer.update(clock.getDelta());
-                renderer.render(scene, camera);
-            });
-        });
-    </script>
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+        <a-entity mindar-image-target="targetIndex: 0">
+            <a-plane src="#card" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
+            <a-gltf-model rotation="0 0 0 " position="0 0 0.1" scale="0.005 0.005 0.005" src="#avatarModel" animation="property: position; to: 0 0.1 0.1; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate">
+        </a-entity>
+    </a-scene>
 </body>
 </html>
