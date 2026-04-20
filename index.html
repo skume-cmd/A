@@ -1,14 +1,17 @@
+<!DOCTYPE html>
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
 </head>
-
 <body>
     <a-scene mindar-image="imageTargetSrc: ./targets.mind;"
              color-space="sRGB"
@@ -17,25 +20,18 @@
              device-orientation-permission-ui="enabled: false">
 
         <a-assets>
-            <!-- モデル -->
             <a-asset-item id="avatarModel" src="./models/character.glb"></a-asset-item>
-
-            <!-- 音声 -->
-            <audio id="voice1" src="./voice1.mp3"></audio>
-            <audio id="voice2" src="./voice2.mp3"></audio>
-            <audio id="voice3" src="./voice3.mp3"></audio>
+            <audio id="voice1" src="./voice1.mp3" preload="auto"></audio>
+            <audio id="voice2" src="./voice2.mp3" preload="auto"></audio>
+            <audio id="voice3" src="./voice3.mp3" preload="auto"></audio>
         </a-assets>
 
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
-        <!-- ライト -->
         <a-entity light="type: ambient; intensity: 1"></a-entity>
         <a-entity light="type: directional; intensity: 1" position="1 1 1"></a-entity>
 
-        <!-- ターゲット -->
         <a-entity mindar-image-target="targetIndex: 0" id="target">
 
-            <!-- アバター -->
             <a-gltf-model src="#avatarModel"
                           position="0 0 0.3"
                           scale="0.1 0.1 0.1"
@@ -43,74 +39,83 @@
                           animation__rotate="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear">
             </a-gltf-model>
 
-            <!-- 吹き出し背景 -->
-            <a-plane position="0 0.6 0.3"
-                     width="0.7"
-                     height="0.25"
-                     material="color: white; opacity: 0.8; shader: flat">
-            </a-plane>
+            <!-- 吹き出しグループ（まとめて表示/非表示） -->
+            <a-entity id="bubble-group" visible="false">
 
-            <!-- ★テキストは別にする -->
-            <a-entity id="speech"
-                      position="0 0.6 0.31"
-                      text="value: タップしてください; align: center; color: black; width: 2">
-            </a-entity>
+                <!-- 吹き出し本体 -->
+                <a-plane position="0 0.6 0.3"
+                         width="0.7" height="0.25"
+                         material="color: white; opacity: 0.9; shader: flat">
+                </a-plane>
 
-        </a-entity>
+                <!-- しっぽ（三角形） -->
+                <a-triangle position="0 0.46 0.3"
+                            geometry="vertexA: 0 0 0; vertexB: -0.06 0.09 0; vertexC: 0.06 0.09 0"
+                            material="color: white; shader: flat; side: double">
+                </a-triangle>
+
+                <!-- テキスト -->
+                <a-entity id="speech"
+                          position="0 0.6 0.31"
+                          text="value: タップしてください;
+                          align: center;
+                          color: #222222;
+                          width: 0.65;
+                          wrapCount: 18;
+                          font: https://cdn.jsdelivr.net/npm/aframe/examples/test/fonts/noto-sans/NotoSansJP-Regular-msdf.json;
+                          negate: false">
+                </a-entity>
+
+            </a-entity> <!-- /bubble-group -->
+
+        </a-entity> <!-- /target -->
 
     </a-scene>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-
             const target = document.querySelector("#target");
             const speech = document.querySelector("#speech");
-
+            const bubbleGroup = document.querySelector("#bubble-group");
             const voices = [
                 document.querySelector("#voice1"),
                 document.querySelector("#voice2"),
                 document.querySelector("#voice3")
             ];
-
             const texts = [
                 "こんにちは！",
                 "ジャンプしてます！",
                 "タップで進みます！"
             ];
-
             let index = 0;
 
-            // マーカー検出で表示
+            // マーカー検出 → 吹き出しグループを表示
             target.addEventListener("targetFound", () => {
-                speech.setAttribute("visible", true);
+                bubbleGroup.setAttribute("visible", true);
             });
 
-            // マーカー外れたら非表示
+            // マーカー消失 → 吹き出しグループを非表示
             target.addEventListener("targetLost", () => {
-                speech.setAttribute("visible", false);
+                bubbleGroup.setAttribute("visible", false);
+                voices.forEach(v => { v.pause(); v.currentTime = 0; });
             });
 
-            // タップで次へ
+            // タップ → テキスト更新 & 音声再生
             document.body.addEventListener("click", () => {
+                voices.forEach(v => { v.pause(); v.currentTime = 0; });
 
-                // 音声停止
-                voices.forEach(v => v.pause());
+                // オブジェクト形式で渡す（プロパティがリセットされない）
+                speech.setAttribute("text", {
+                    value: texts[index],
+                    align: "center",
+                    color: "#222222",
+                    width: 0.65,
+                    wrapCount: 18
+                });
 
-                // テキスト更新
-                speech.setAttribute(
-                    "text",
-                    "value: " + texts[index] + "; align: center; color: black"
-                );
-
-                // 音声再生
-                voices[index].currentTime = 0;
-                voices[index].play();
-
-                index++;
-                if (index >= texts.length) index = 0;
-
+                voices[index].play().catch(e => console.warn("再生エラー:", e));
+                index = (index + 1) % texts.length;
             });
-
         });
     </script>
 </body>
