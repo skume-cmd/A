@@ -6,6 +6,7 @@
     <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
 </head>
 
 <body>
@@ -32,26 +33,8 @@
         <a-entity light="type: directional; intensity: 1" position="1 1 1"></a-entity>
 
         <!-- ターゲット -->
-        <a-entity mindar-image-target="targetIndex: 0" id="target">
-
-            <!-- アバター -->
-            <a-gltf-model src="#avatarModel"
-                          position="0 0 0.3"
-                          scale="0.1 0.1 0.1"
-                          animation-mixer="clip: HumanArmature|HumanArmature|Man_Jump; loop: repeat"
-                          animation__rotate="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear">
-            </a-gltf-model>
-
-            <!-- 吹き出し -->
-            <a-plane id="speech"
-                     position="0 0.6 0.3"
-                     width="0.7"
-                     height="0.25"
-                     material="color: white; opacity: 0.8; shader: flat"
-                     text="value: タップしてください; align: center; color: black; font: https://cdn.aframe.io/fonts/mozillavr.fnt"
-                     visible="true">
-            </a-plane>
-
+        <a-entity text="value: テスト; color: black"
+                  position="0 1 -2">
         </a-entity>
 
     </a-scene>
