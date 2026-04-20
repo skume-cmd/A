@@ -16,51 +16,97 @@
              device-orientation-permission-ui="enabled: false">
 
         <a-assets>
+            <!-- モデル -->
             <a-asset-item id="avatarModel" src="./models/character.glb"></a-asset-item>
+
+            <!-- 音声 -->
+            <audio id="voice1" src="./voice1.mp3"></audio>
+            <audio id="voice2" src="./voice2.mp3"></audio>
+            <audio id="voice3" src="./voice3.mp3"></audio>
         </a-assets>
 
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-        <!-- ★ライト追加（超重要） -->
+        <!-- ライト -->
         <a-entity light="type: ambient; intensity: 1"></a-entity>
         <a-entity light="type: directional; intensity: 1" position="1 1 1"></a-entity>
 
-        <a-entity mindar-image-target="targetIndex: 0">
+        <!-- ターゲット -->
+        <a-entity mindar-image-target="targetIndex: 0" id="target">
+
+            <!-- アバター -->
             <a-gltf-model src="#avatarModel"
                           position="0 0 0.3"
-                          scale="0.2 0.2 0.2"
+                          scale="0.1 0.1 0.1"
                           animation-mixer="clip: HumanArmature|HumanArmature|Man_Jump; loop: repeat"
                           animation__rotate="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear">
             </a-gltf-model>
+
+            <!-- 吹き出し -->
+            <a-plane id="speech"
+                     position="0 0.6 0.3"
+                     width="1"
+                     height="0.3"
+                     color="#ffffff"
+                     text="value: タップしてください; align: center; color: black"
+                     visible="false">
+            </a-plane>
+
         </a-entity>
-        <a-plane id="speech"
-                 position="0 0.5 0.3"
-                 width="1"
-                 height="0.3"
-                 color="#ffffff"
-                 text="value: こんにちは！; align: center; color: black"
-                 visible="false"></a-plane>
+
     </a-scene>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+
             const target = document.querySelector("#target");
             const speech = document.querySelector("#speech");
-            const audio = document.querySelector("#voice");
 
-            // マーカー検出時
+            const voices = [
+                document.querySelector("#voice1"),
+                document.querySelector("#voice2"),
+                document.querySelector("#voice3")
+            ];
+
+            const texts = [
+                "こんにちは！",
+                "ジャンプしてます！",
+                "タップで進みます！"
+            ];
+
+            let index = 0;
+
+            // マーカー検出で表示
             target.addEventListener("targetFound", () => {
                 speech.setAttribute("visible", true);
-
-                audio.currentTime = 0;
-                audio.play();
             });
 
-            // マーカー外れたとき
+            // マーカー外れたら非表示
             target.addEventListener("targetLost", () => {
                 speech.setAttribute("visible", false);
-                audio.pause();
             });
+
+            // タップで次へ
+            document.body.addEventListener("click", () => {
+
+                // 音声停止
+                voices.forEach(v => v.pause());
+
+                // テキスト更新
+                speech.setAttribute(
+                    "text",
+                    "value: " + texts[index] + "; align: center; color: black"
+                );
+
+                // 音声再生
+                voices[index].currentTime = 0;
+                voices[index].play();
+
+                index++;
+                if (index >= texts.length) index = 0;
+
+            });
+
         });
     </script>
 </body>
