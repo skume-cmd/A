@@ -40,14 +40,14 @@
             <a-gltf-model src="#avatarModel"
                           position="0 0 0.3"
                           scale="0.1 0.1 0.1"
-                          animation-mixer="clip: HumanArmature|HumanArmature|Man_Jump; loop: repeat"
+                          animation-mixer="clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat"
                           animation__rotate="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear">
             </a-gltf-model>
 
             <!-- 吹き出しPlane：Canvasをテクスチャとして使う -->
             <a-plane id="bubble-plane"
                      position="0 0.65 0.3"
-                     width="0.8" height="0.4"
+                     width="1.0" height="0.4"
                      visible="false"
                      material="src: #bubble-canvas;
                   transparent: true;
@@ -74,20 +74,6 @@
             ctx.font = `bold ${fontSize}px sans-serif`;
 
             const paragraphs = text.split("\n");
-            const lines = [];
-            paragraphs.forEach(para => {
-                let line = "";
-                for (const char of para) {
-                    const test = line + char;
-                    if (ctx.measureText(test).width > maxWidth && line !== "") {
-                        lines.push(line);
-                        line = char;
-                    } else {
-                        line = test;
-                    }
-                }
-                lines.push(line);
-            });
 
             const textBlockH = lines.length * lineHeight;
             const padV = 28;
