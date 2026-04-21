@@ -207,7 +207,7 @@
                 // animation__appear を削除して object3D で直接制御
                 avatar.removeAttribute("animation__appear");
                 avatar.setAttribute("animation-mixer",
-                    "clip: Jump; loop: once; startAt: 300");
+                    "clip: HumanArmature|HumanArmature|Man_Jump; loop: once; startAt: 300");
 
                 // 下から浮き上がる動きを object3D で実装
                 const startTime = performance.now();
@@ -229,7 +229,7 @@
 
                 avatar.addEventListener("animation-finished", () => {
                     avatar.setAttribute("animation-mixer",
-                        "clip: Idle; loop: repeat");
+                        "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
                 }, { once: true });
             });
 
