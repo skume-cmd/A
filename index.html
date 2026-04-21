@@ -70,11 +70,14 @@
 
                 const x = Math.sin(walkAngle) * radius;
                 const z = Math.cos(walkAngle) * radius + 0.3;
+
                 this.el.object3D.position.set(x, 0, z);
 
+                // 進行方向を向く（Y軸回転のみ）
+                const deg = THREE.MathUtils.degToRad((walkAngle * 180 / Math.PI) * -1);
                 this.el.object3D.rotation.set(
-                    THREE.MathUtils.degToRad(90),
-                    THREE.MathUtils.degToRad((walkAngle * 180 / Math.PI) * -1),
+                    0, // モデルを縦に起こす
+                    deg,                           // 進行方向に向く
                     0
                 );
             }
@@ -201,17 +204,32 @@
                 plane.setAttribute("visible", true);
                 spawnParticles();
 
-                // ジャンプで登場
-                avatar.object3D.position.set(0, -0.3, 0.3);
+                // animation__appear を削除して object3D で直接制御
+                avatar.removeAttribute("animation__appear");
                 avatar.setAttribute("animation-mixer",
-                    "clip: HumanArmature|HumanArmature|Man_Jump; loop: once; startAt: 300");
-                avatar.setAttribute("animation__appear",
-                    "property: position; from: 0 -0.3 0.3; to: 0 0 0.3; dur: 400; easing: easeOutQuad");
+                    "clip: Jump; loop: once; startAt: 300");
 
-                // ジャンプ終了 → 待機（circle-walk は付けない）
+                // 下から浮き上がる動きを object3D で実装
+                const startTime = performance.now();
+                const duration = 400;
+                const fromY = -0.3;
+                const toY = 0;
+
+                avatar.object3D.position.set(0, fromY, 0.3);
+
+                function appearTick() {
+                    const elapsed = performance.now() - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    // easeOutQuad
+                    const eased = 1 - (1 - progress) * (1 - progress);
+                    avatar.object3D.position.set(0, fromY + (toY - fromY) * eased, 0.3);
+                    if (progress < 1) requestAnimationFrame(appearTick);
+                }
+                requestAnimationFrame(appearTick);
+
                 avatar.addEventListener("animation-finished", () => {
                     avatar.setAttribute("animation-mixer",
-                        "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
+                        "clip: Idle; loop: repeat");
                 }, { once: true });
             });
 
