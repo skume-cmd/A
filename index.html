@@ -21,14 +21,11 @@
              device-orientation-permission-ui="enabled: false">
 
         <a-assets>
-            <a-asset-item id="avatarModel" src="./models/character.glb"></a-asset-item>
+            <a-asset-item id="avatarModel" src="./models/A.glb"></a-asset-item>
             <audio id="voice1" src="./voice1.mp3" preload="auto"></audio>
             <audio id="voice2" src="./voice2.mp3" preload="auto"></audio>
             <audio id="voice3" src="./voice3.mp3" preload="auto"></audio>
-
-            <!-- 吹き出し用Canvas（512x256px） -->
-            <canvas id="bubble-canvas" width="512" height="256"
-                    style="display:none"></canvas>
+            <canvas id="bubble-canvas" width="512" height="256" style="display:none"></canvas>
         </a-assets>
 
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -37,49 +34,23 @@
 
         <a-entity mindar-image-target="targetIndex: 0" id="target">
 
-            <a-gltf-model src="#avatarModel"
+            <a-gltf-model id="avatar"
+                          src="#avatarModel"
                           position="0 0 0.3"
                           scale="0.1 0.1 0.1"
-                          animation-mixer="clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat"
-                          rotation="90 0 0">
+                          rotation="90 0 0"
+                          animation-mixer="clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat">
             </a-gltf-model>
-            <a-entity id="particles" visible="false">
-                <a-sphere position=" 0.0  0.2 0.3" radius="0.02" color="#FFD700"
-                          animation="property: position; to:  0.3  0.6 0.3; dur: 800; easing: easeOutQuad"
-                          animation__fade="property: components.material.material.opacity; from: 1; to: 0; dur: 800"
-                          material="transparent: true"></a-sphere>
-                <a-sphere position=" 0.1  0.0 0.3" radius="0.02" color="#FF69B4"
-                          animation="property: position; to:  0.5  0.4 0.3; dur: 700; easing: easeOutQuad"
-                          animation__fade="property: components.material.material.opacity; from: 1; to: 0; dur: 700"
-                          material="transparent: true"></a-sphere>
-                <a-sphere position="-0.1  0.0 0.3" radius="0.02" color="#00BFFF"
-                          animation="property: position; to: -0.5  0.4 0.3; dur: 900; easing: easeOutQuad"
-                          animation__fade="property: components.material.material.opacity; from: 1; to: 0; dur: 900"
-                          material="transparent: true"></a-sphere>
-                <a-sphere position=" 0.0 -0.1 0.3" radius="0.02" color="#7FFF00"
-                          animation="property: position; to:  0.2  0.7 0.3; dur: 750; easing: easeOutQuad"
-                          animation__fade="property: components.material.material.opacity; from: 1; to: 0; dur: 750"
-                          material="transparent: true"></a-sphere>
-                <a-sphere position="-0.2  0.1 0.3" radius="0.02" color="#FF4500"
-                          animation="property: position; to: -0.3  0.7 0.3; dur: 850; easing: easeOutQuad"
-                          animation__fade="property: components.material.material.opacity; from: 1; to: 0; dur: 850"
-                          material="transparent: true"></a-sphere>
-                <a-sphere position=" 0.2  0.1 0.3" radius="0.02" color="#DA70D6"
-                          animation="property: position; to:  0.4  0.7 0.3; dur: 650; easing: easeOutQuad"
-                          animation__fade="property: components.material.material.opacity; from: 1; to: 0; dur: 650"
-                          material="transparent: true"></a-sphere>
-            </a-entity>
-            <!-- 吹き出しPlane：Canvasをテクスチャとして使う -->
+
             <a-plane id="bubble-plane"
                      position="0 0.65 0.3"
                      width="1.3" height="0.4"
-                     rotation="90 0 0"
                      visible="false"
                      material="src: #bubble-canvas;
-                  transparent: true;
-                  alphaTest: 0.1;
-                  shader: flat;
-                  npot: true">
+                          transparent: true;
+                          alphaTest: 0.1;
+                          shader: flat;
+                          npot: true">
             </a-plane>
 
         </a-entity>
@@ -87,7 +58,30 @@
 
     <script>
         // ══════════════════════════════════════
-        // 吹き出し描画（\n で改行、自動折り返しなし）
+        // circle-walk コンポーネント（最上部に登録）
+        // ══════════════════════════════════════
+        let walkAngle = 0;
+
+        AFRAME.registerComponent("circle-walk", {
+            tick(time, delta) {
+                const radius = 0.4;
+                const speed = 0.5;
+                walkAngle += speed * (delta / 1000);
+
+                const x = Math.sin(walkAngle) * radius;
+                const z = Math.cos(walkAngle) * radius + 0.3;
+                this.el.object3D.position.set(x, 0, z);
+
+                this.el.object3D.rotation.set(
+                    THREE.MathUtils.degToRad(90),
+                    THREE.MathUtils.degToRad((walkAngle * 180 / Math.PI) * -1),
+                    0
+                );
+            }
+        });
+
+        // ══════════════════════════════════════
+        // 吹き出し描画
         // ══════════════════════════════════════
         function drawBubble(text) {
             const canvas = document.getElementById("bubble-canvas");
@@ -182,40 +176,6 @@
         }
 
         // ══════════════════════════════════════
-        // 円を描いて歩く
-        // ══════════════════════════════════════
-        let walkAnimId = null;
-
-        function startWalking(avatar) {
-            avatar.setAttribute("animation-mixer",
-                "clip: HumanArmature|HumanArmature|Man_Walk; loop: repeat");
-
-            const radius = 0.4;
-            const speed = 0.5;
-            let angle = 0;
-            let lastTime = null;
-
-            function tick(timestamp) {
-                if (!lastTime) lastTime = timestamp;
-                const delta = (timestamp - lastTime) / 1000;
-                lastTime = timestamp;
-
-                angle += speed * delta;
-
-                const x = Math.sin(angle) * radius;
-                const z = Math.cos(angle) * radius + 0.3;
-                avatar.setAttribute("position", `${x} 0 ${z}`);
-
-                const deg = (angle * 180 / Math.PI) * -1;
-                avatar.setAttribute("rotation", `90 ${deg} 0`);
-
-                walkAnimId = requestAnimationFrame(tick);
-            }
-
-            walkAnimId = requestAnimationFrame(tick);
-        }
-
-        // ══════════════════════════════════════
         // メイン処理
         // ══════════════════════════════════════
         document.addEventListener("DOMContentLoaded", () => {
@@ -228,13 +188,12 @@
                 document.querySelector("#voice3"),
             ];
             const texts = [
-                "こんにちは！\n私はナビゲーターです",
-                "私たちは、",
-                "ご紹介します。",
+                "こんにちは！\nナビゲーターです",
+                "私たちは、\n会社。",
+                "今日は、ご紹介します。",
             ];
             let index = 0;
 
-            // 初期描画
             drawBubble("タップしてください");
 
             // ── マーカー検出 ──────────────────────
@@ -243,13 +202,13 @@
                 spawnParticles();
 
                 // ジャンプで登場
-                avatar.setAttribute("position", "0 -0.3 0.3");
+                avatar.object3D.position.set(0, -0.3, 0.3);
                 avatar.setAttribute("animation-mixer",
                     "clip: HumanArmature|HumanArmature|Man_Jump; loop: once; startAt: 300");
                 avatar.setAttribute("animation__appear",
                     "property: position; from: 0 -0.3 0.3; to: 0 0 0.3; dur: 400; easing: easeOutQuad");
 
-                // ジャンプ終了後は待機
+                // ジャンプ終了 → 待機（circle-walk は付けない）
                 avatar.addEventListener("animation-finished", () => {
                     avatar.setAttribute("animation-mixer",
                         "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
@@ -261,32 +220,29 @@
                 plane.setAttribute("visible", false);
                 voices.forEach(v => { v.pause(); v.currentTime = 0; });
 
-                // 円歩きを停止
-                if (walkAnimId) {
-                    cancelAnimationFrame(walkAnimId);
-                    walkAnimId = null;
-                }
-
-                // 次回検出に備えてリセット
-                avatar.setAttribute("position", "0 0 0.3");
-                avatar.setAttribute("rotation", "90 0 0");
+                // 歩きを停止してリセット
+                avatar.removeAttribute("circle-walk");
+                avatar.object3D.position.set(0, 0, 0.3);
+                avatar.object3D.rotation.set(
+                    THREE.MathUtils.degToRad(90), 0, 0
+                );
                 avatar.setAttribute("animation-mixer",
-                    "clip: HumanArmature|HumanArmature|Man_Jump; loop: once; startAt: 300");
+                    "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
             });
 
-            // ── タップで次のセリフへ ──────────────
+            // ── タップで次のセリフ＆歩き開始 ──────
             document.body.addEventListener("click", () => {
                 voices.forEach(v => { v.pause(); v.currentTime = 0; });
                 drawBubble(texts[index]);
                 voices[index].play().catch(e => console.warn("再生エラー:", e));
                 index = (index + 1) % texts.length;
 
-                // 歩きを停止してから再スタート
-                if (walkAnimId) {
-                    cancelAnimationFrame(walkAnimId);
-                    walkAnimId = null;
-                }
-                startWalking(avatar);
+                // 歩きを毎回リセットして開始
+                walkAngle = 0;
+                avatar.removeAttribute("circle-walk");
+                avatar.setAttribute("animation-mixer",
+                    "clip: HumanArmature|HumanArmature|Man_Jump; loop: repeat");
+                avatar.setAttribute("circle-walk", "");
             });
         });
     </script>
