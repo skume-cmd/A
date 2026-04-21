@@ -21,7 +21,7 @@
              device-orientation-permission-ui="enabled: false">
 
         <a-assets>
-            <a-asset-item id="avatarModel" src="./models/character.glb"></a-asset-item>
+            <a-asset-item id="avatarModel" src="./models/A.glb"></a-asset-item>
             <audio id="voice1" src="./voice1.mp3" preload="auto"></audio>
             <audio id="voice2" src="./voice2.mp3" preload="auto"></audio>
             <audio id="voice3" src="./voice3.mp3" preload="auto"></audio>
@@ -70,14 +70,11 @@
 
                 const x = Math.sin(walkAngle) * radius;
                 const z = Math.cos(walkAngle) * radius + 0.3;
-
                 this.el.object3D.position.set(x, 0, z);
 
-                // 進行方向を向く（Y軸回転のみ）
-                const deg = THREE.MathUtils.degToRad((walkAngle * 180 / Math.PI) * -1);
                 this.el.object3D.rotation.set(
-                    0, // モデルを縦に起こす
-                    deg,                           // 進行方向に向く
+                    0,
+                    THREE.MathUtils.degToRad((walkAngle * 180 / Math.PI) * -1),
                     0
                 );
             }
@@ -190,46 +187,78 @@
                 document.querySelector("#voice2"),
                 document.querySelector("#voice3"),
             ];
-            const texts = [
-                "こんにちは！\nナビゲーターです",
-                "私たちは、\n会社。",
-                "今日は、ご紹介します。",
+
+            // ── セリフ・音声・アニメーションの定義 ──
+            const sequence = [
+                { text: "こんにちは！\nナビゲーターです", voice: voices[0], clip: "Walk" },
+                { text: "私たちは、\n会社。", voice: voices[1], clip: "Wave" },
+                { text: "今日は、ご紹介します。", voice: voices[2], clip: "Idle" },
             ];
-            let index = 0;
+
+            let started = false;
 
             drawBubble("タップしてください");
+
+            // ── セリフ自動再生 ────────────────────
+            function playSequence(idx) {
+                if (idx >= sequence.length) {
+                    // 全部終わったら待機
+                    avatar.setAttribute("animation-mixer", "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
+                    avatar.removeAttribute("circle-walk");
+                    return;
+                }
+
+                const { text, voice, clip } = sequence[idx];
+
+                drawBubble(text);
+
+                // アニメーション切り替え
+                avatar.setAttribute("animation-mixer", `clip: ${clip}; loop: repeat`);
+
+                // Walk のときだけ円歩きON
+                if (clip === "Walk") {
+                    walkAngle = 0;
+                    avatar.setAttribute("circle-walk", "");
+                } else {
+                    avatar.removeAttribute("circle-walk");
+                }
+
+                // 音声再生 → 終わったら次へ
+                voice.currentTime = 0;
+                voice.play().catch(e => console.warn("再生エラー:", e));
+                voice.addEventListener("ended", () => {
+                    playSequence(idx + 1);
+                }, { once: true });
+            }
 
             // ── マーカー検出 ──────────────────────
             target.addEventListener("targetFound", () => {
                 plane.setAttribute("visible", true);
                 spawnParticles();
 
-                // animation__appear を削除して object3D で直接制御
+                // ジャンプで登場
                 avatar.removeAttribute("animation__appear");
                 avatar.setAttribute("animation-mixer",
                     "clip: HumanArmature|HumanArmature|Man_Jump; loop: once; startAt: 300");
 
-                // 下から浮き上がる動きを object3D で実装
                 const startTime = performance.now();
                 const duration = 400;
                 const fromY = -0.3;
                 const toY = 0;
-
                 avatar.object3D.position.set(0, fromY, 0.3);
 
                 function appearTick() {
                     const elapsed = performance.now() - startTime;
                     const progress = Math.min(elapsed / duration, 1);
-                    // easeOutQuad
                     const eased = 1 - (1 - progress) * (1 - progress);
                     avatar.object3D.position.set(0, fromY + (toY - fromY) * eased, 0.3);
                     if (progress < 1) requestAnimationFrame(appearTick);
                 }
                 requestAnimationFrame(appearTick);
 
+                // ジャンプ終了 → 待機
                 avatar.addEventListener("animation-finished", () => {
-                    avatar.setAttribute("animation-mixer",
-                        "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
+                    avatar.setAttribute("animation-mixer", "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
                 }, { once: true });
             });
 
@@ -238,44 +267,19 @@
                 plane.setAttribute("visible", false);
                 voices.forEach(v => { v.pause(); v.currentTime = 0; });
 
-                // 歩きを停止してリセット
-                avatar.removeAttribute("circle-walk");
-                avatar.object3D.position.set(0, 0, 0.3);
-                avatar.object3D.rotation.set(
-                    THREE.MathUtils.degToRad(90), 0, 0
-                );
-                avatar.setAttribute("animation-mixer",
-                    "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
-            });
-
-            // ── タップで次のセリフ＆歩き開始 ──────
-            let started = false;
-
-            document.body.addEventListener("click", () => {
-                if (started) return; // 2回目以降のタップは無視
-                started = true;
-
-                // 歩き開始
-                walkAngle = 0;
-                avatar.removeAttribute("circle-walk");
-                avatar.setAttribute("animation-mixer", "clip: Walk; loop: repeat");
-                avatar.setAttribute("circle-walk", "");
-
-                // セリフを最初から自動再生
-                playSequence(0);
-            });
-
-            // マーカー消失時にリセット
-            target.addEventListener("targetLost", () => {
-                plane.setAttribute("visible", false);
-                voices.forEach(v => { v.pause(); v.currentTime = 0; });
-
                 avatar.removeAttribute("circle-walk");
                 avatar.object3D.position.set(0, 0, 0.3);
                 avatar.object3D.rotation.set(0, 0, 0);
-                avatar.setAttribute("animation-mixer", "clip: Idle; loop: repeat");
+                avatar.setAttribute("animation-mixer", "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
 
-                started = false; // リセット
+                started = false;
+            });
+
+            // ── タップで開始 ──────────────────────
+            document.body.addEventListener("click", () => {
+                if (started) return;
+                started = true;
+                playSequence(0);
             });
         });
     </script>
