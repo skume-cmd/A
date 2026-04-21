@@ -249,18 +249,33 @@
             });
 
             // ── タップで次のセリフ＆歩き開始 ──────
-            document.body.addEventListener("click", () => {
-                voices.forEach(v => { v.pause(); v.currentTime = 0; });
-                drawBubble(texts[index]);
-                voices[index].play().catch(e => console.warn("再生エラー:", e));
-                index = (index + 1) % texts.length;
+            let started = false;
 
-                // 歩きを毎回リセットして開始
+            document.body.addEventListener("click", () => {
+                if (started) return; // 2回目以降のタップは無視
+                started = true;
+
+                // 歩き開始
                 walkAngle = 0;
                 avatar.removeAttribute("circle-walk");
-                avatar.setAttribute("animation-mixer",
-                    "clip: HumanArmature|HumanArmature|Man_Walk; loop: repeat");
+                avatar.setAttribute("animation-mixer", "clip: Walk; loop: repeat");
                 avatar.setAttribute("circle-walk", "");
+
+                // セリフを最初から自動再生
+                playSequence(0);
+            });
+
+            // マーカー消失時にリセット
+            target.addEventListener("targetLost", () => {
+                plane.setAttribute("visible", false);
+                voices.forEach(v => { v.pause(); v.currentTime = 0; });
+
+                avatar.removeAttribute("circle-walk");
+                avatar.object3D.position.set(0, 0, 0.3);
+                avatar.object3D.rotation.set(0, 0, 0);
+                avatar.setAttribute("animation-mixer", "clip: Idle; loop: repeat");
+
+                started = false; // リセット
             });
         });
     </script>
