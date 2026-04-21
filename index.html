@@ -216,6 +216,7 @@
                     // 全部終わったら待機
                     avatar.setAttribute("animation-mixer", "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
                     avatar.removeAttribute("circle-walk");
+                    avatar.setAttribute("smoooth-follow", "");
                     return;
                 }
 
@@ -227,7 +228,7 @@
                 avatar.setAttribute("animation-mixer", `clip: ${clip}; loop: repeat`);
 
                 // Walk のときだけ円歩きON
-                if (clip === "Walk") {
+                if (clip === "HumanArmature|HumanArmature|Man_Walk") {
                     walkAngle = 0;
                     avatar.setAttribute("circle-walk", "");
                 } else {
