@@ -190,8 +190,8 @@
             avatar.setAttribute("animation-mixer",
                 "clip: HumanArmature|HumanArmature|Man_Walk; loop: repeat");
 
-            const radius = 0.4;  // 円の半径（メートル）
-            const speed = 0.5;  // rad/秒。大きいほど速い
+            const radius = 0.4;
+            const speed = 0.5;
             let angle = 0;
             let lastTime = null;
 
@@ -206,7 +206,6 @@
                 const z = Math.cos(angle) * radius + 0.3;
                 avatar.setAttribute("position", `${x} 0 ${z}`);
 
-                // 進行方向に体を向ける
                 const deg = (angle * 180 / Math.PI) * -1;
                 avatar.setAttribute("rotation", `90 ${deg} 0`);
 
@@ -250,9 +249,10 @@
                 avatar.setAttribute("animation__appear",
                     "property: position; from: 0 -0.3 0.3; to: 0 0 0.3; dur: 400; easing: easeOutQuad");
 
-                // ジャンプ終了 → 円歩き開始
+                // ジャンプ終了後は待機
                 avatar.addEventListener("animation-finished", () => {
-                    startWalking(avatar);
+                    avatar.setAttribute("animation-mixer",
+                        "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
                 }, { once: true });
             });
 
@@ -280,6 +280,13 @@
                 drawBubble(texts[index]);
                 voices[index].play().catch(e => console.warn("再生エラー:", e));
                 index = (index + 1) % texts.length;
+
+                // 歩きを停止してから再スタート
+                if (walkAnimId) {
+                    cancelAnimationFrame(walkAnimId);
+                    walkAnimId = null;
+                }
+                startWalking(avatar);
             });
         });
     </script>
