@@ -25,8 +25,10 @@
             <audio id="voice1" src="./voice1.mp3" preload="auto"></audio>
             <audio id="voice2" src="./voice2.mp3" preload="auto"></audio>
             <audio id="voice3" src="./voice3.mp3" preload="auto"></audio>
-            <!-- 吹き出し用Canvas（横幅640px） -->
-            <canvas id="bubble-canvas" width="640" height="256" style="display:none"></canvas>
+
+            <!-- 吹き出し用Canvas（512x256px） -->
+            <canvas id="bubble-canvas" width="512" height="256"
+                    style="display:none"></canvas>
         </a-assets>
 
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -35,19 +37,43 @@
 
         <a-entity mindar-image-target="targetIndex: 0" id="target">
 
-            <!-- アバター -->
-            <a-gltf-model id="avatar"
-                          src="#avatarModel"
+            <a-gltf-model src="#avatarModel"
                           position="0 0 0.3"
                           scale="0.1 0.1 0.1"
-                          rotation="90 0 0"
-                          animation-mixer="clip: HumanArmature|HumanArmature|Man_Jump; loop: once; startAt: 300">
+                          animation-mixer="clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat"
+                          rotation="90 0 0">
             </a-gltf-model>
-
-            <!-- 吹き出し -->
+            <a-entity id="particles" visible="false">
+                <a-sphere position=" 0.0  0.2 0.3" radius="0.02" color="#FFD700"
+                          animation="property: position; to:  0.3  0.6 0.3; dur: 800; easing: easeOutQuad"
+                          animation__fade="property: components.material.material.opacity; from: 1; to: 0; dur: 800"
+                          material="transparent: true"></a-sphere>
+                <a-sphere position=" 0.1  0.0 0.3" radius="0.02" color="#FF69B4"
+                          animation="property: position; to:  0.5  0.4 0.3; dur: 700; easing: easeOutQuad"
+                          animation__fade="property: components.material.material.opacity; from: 1; to: 0; dur: 700"
+                          material="transparent: true"></a-sphere>
+                <a-sphere position="-0.1  0.0 0.3" radius="0.02" color="#00BFFF"
+                          animation="property: position; to: -0.5  0.4 0.3; dur: 900; easing: easeOutQuad"
+                          animation__fade="property: components.material.material.opacity; from: 1; to: 0; dur: 900"
+                          material="transparent: true"></a-sphere>
+                <a-sphere position=" 0.0 -0.1 0.3" radius="0.02" color="#7FFF00"
+                          animation="property: position; to:  0.2  0.7 0.3; dur: 750; easing: easeOutQuad"
+                          animation__fade="property: components.material.material.opacity; from: 1; to: 0; dur: 750"
+                          material="transparent: true"></a-sphere>
+                <a-sphere position="-0.2  0.1 0.3" radius="0.02" color="#FF4500"
+                          animation="property: position; to: -0.3  0.7 0.3; dur: 850; easing: easeOutQuad"
+                          animation__fade="property: components.material.material.opacity; from: 1; to: 0; dur: 850"
+                          material="transparent: true"></a-sphere>
+                <a-sphere position=" 0.2  0.1 0.3" radius="0.02" color="#DA70D6"
+                          animation="property: position; to:  0.4  0.7 0.3; dur: 650; easing: easeOutQuad"
+                          animation__fade="property: components.material.material.opacity; from: 1; to: 0; dur: 650"
+                          material="transparent: true"></a-sphere>
+            </a-entity>
+            <!-- 吹き出しPlane：Canvasをテクスチャとして使う -->
             <a-plane id="bubble-plane"
                      position="0 0.65 0.3"
-                     width="1.0" height="0.4"
+                     width="1.3" height="0.4"
+                     rotation="90 0 0"
                      visible="false"
                      material="src: #bubble-canvas;
                   transparent: true;
@@ -75,7 +101,6 @@
             const lineHeight = fontSize * 1.4;
             ctx.font = `bold ${fontSize}px sans-serif`;
 
-            // \n だけで改行、自動折り返しなし
             const lines = text.split("\n");
 
             const textBlockH = lines.length * lineHeight;
@@ -86,7 +111,6 @@
             const bh = textBlockH + padV * 2;
             const r = 24;
 
-            // 吹き出し本体
             ctx.beginPath();
             ctx.moveTo(bx + r, by);
             ctx.lineTo(bx + bw - r, by);
@@ -112,7 +136,6 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // テキスト描画
             ctx.fillStyle = "#222222";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
@@ -121,7 +144,6 @@
                 ctx.fillText(line, W / 2, startY + i * lineHeight);
             });
 
-            // A-Frame テクスチャ更新
             const plane = document.getElementById("bubble-plane");
             if (plane && plane.components.material) {
                 plane.components.material.material.map.needsUpdate = true;
