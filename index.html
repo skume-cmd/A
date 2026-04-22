@@ -39,7 +39,7 @@
                           src="#avatarModel"
                           position="0 0 0.3"
                           scale="0.1 0.1 0.1"
-                          rotation="90 0 0"
+                          rotation="250 0 0"
                           animation-mixer="clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat">
             </a-gltf-model>
 
@@ -62,7 +62,6 @@
         // circle-walk コンポーネント（最上部に登録）
         // ══════════════════════════════════════
         let walkAngle = 0;
-
         AFRAME.registerComponent("circle-walk", {
             tick(time, delta) {
                 const radius = 0.4;
@@ -74,7 +73,7 @@
                 this.el.object3D.position.set(x, 0, z);
 
                 this.el.object3D.rotation.set(
-                    THREE.MathUtils.degToRad(90),
+                    THREE.MathUtils.degToRad(250),
                     THREE.MathUtils.degToRad((walkAngle * 180 / Math.PI) * -1),
                     0
                 );
@@ -200,7 +199,7 @@
             ];
             avatar.addEventListener("model-loaded", () => {
                 avatar.object3D.rotation.set(
-                    THREE.MathUtils.degToRad(90),
+                    THREE.MathUtils.degToRad(250),
                     0,
                     0
                 );
@@ -302,9 +301,9 @@
 
                 avatar.removeAttribute("circle-walk");
                 avatar.object3D.position.set(0, 0, 0.3);
-                avatar.object3D.rotation.set(THREE.MathUtils.degToRad(90), 0, 0);
+                avatar.object3D.rotation.set(THREE.MathUtils.degToRad(250), 0, 0);
                 avatar.object3D.rotation.set(0, 0, 0);
-                avatar.object3D.rotation.set(THREE.MathUtils.degToRad(90), 0, 0);
+                avatar.object3D.rotation.set(THREE.MathUtils.degToRad(250), 0, 0);
                 avatar.setAttribute("animation-mixer", "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
 
                 started = false;
