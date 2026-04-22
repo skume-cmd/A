@@ -39,7 +39,7 @@
                           src="#avatarModel"
                           position="0 0 0.3"
                           scale="0.1 0.1 0.1"
-                          rotation="90 0 0"
+                          rotation="-90 0 0"
                           animation-mixer="clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat">
             </a-gltf-model>
 
@@ -74,7 +74,7 @@
                 this.el.object3D.position.set(x, 0, z);
 
                 this.el.object3D.rotation.set(
-                    0,
+                    THREE.MathUtils.degToRad(-90),
                     THREE.MathUtils.degToRad((walkAngle * 180 / Math.PI) * -1),
                     0
                 );
@@ -281,6 +281,7 @@
                     requestAnimationFrame(() => {
                         avatar.object3D.position.set(pos.x, pos.y, pos.z);
 
+
                         // circle-walk の開始角度もその座標に合わせる
                         walkAngle = Math.atan2(pos.x, pos.z - 0.3);
                     });
@@ -295,7 +296,9 @@
 
                 avatar.removeAttribute("circle-walk");
                 avatar.object3D.position.set(0, 0, 0.3);
+                avatar.object3D.rotation.set(THREE.MathUtils.degToRad(-90), 0, 0);
                 avatar.object3D.rotation.set(0, 0, 0);
+                avatar.object3D.rotation.set(THREE.MathUtils.degToRad(-90), 0, 0);
                 avatar.setAttribute("animation-mixer", "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
 
                 started = false;
