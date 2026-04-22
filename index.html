@@ -14,7 +14,7 @@
 </head>
 <body>
 
-    <a-scene mindar-image="imageTargetSrc: ./targets.mind; filterMinCF:0.02; filterBeta: 30; warmupTolerance: 1;missTolerance: 1; "
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind; filterMinCF:0.001; filterBeta: 10; warmupTolerance: 5;missTolerance: 5; "
              color-space="sRGB"
              renderer="colorManagement: true, physicallyCorrectLights"
              vr-mode-ui="enabled: false"
@@ -62,7 +62,6 @@
         // circle-walk コンポーネント（最上部に登録）
         // ══════════════════════════════════════
         let walkAngle = 0;
-        let isTracking = false;
         AFRAME.registerComponent("circle-walk", {
             tick(time, delta) {
                 const radius = 0.4;
@@ -253,8 +252,7 @@
 
             // ── マーカー検出 ──────────────────────
             target.addEventListener("targetFound", () => {
-                if (isTrucking) return;
-                isTracking = true;
+                if(istrucking)
                 plane.setAttribute("visible", true);
                 spawnParticles();
 
@@ -299,7 +297,6 @@
             // ── マーカー消失 ──────────────────────
             target.addEventListener("targetLost", () => {
                 stopWalking();
-                isTracking = false;
                 plane.setAttribute("visible", false);
                 voices.forEach(v => { v.pause(); v.currentTime = 0; });
 
