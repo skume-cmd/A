@@ -21,7 +21,7 @@
              device-orientation-permission-ui="enabled: false">
 
         <a-assets>
-            <a-asset-item id="avatarModel" src="./models/character.glb"></a-asset-item>
+            <a-asset-item id="avatarModel" src="./models/charcter.glb"></a-asset-item>
             <audio id="voice1" src="./voice1.mp3" preload="auto"></audio>
             <audio id="voice2" src="./voice2.mp3" preload="auto"></audio>
             <audio id="voice3" src="./voice3.mp3" preload="auto"></audio>
@@ -253,7 +253,7 @@
                 // ジャンプで登場
                 avatar.removeAttribute("animation__appear");
                 avatar.setAttribute("animation-mixer",
-                    "clip: HumanArmature|HumanArmature|Man_Jump; loop: once; startAt: 300");
+                    "clip: start; loop: once; startAt: 300");
 
                 const startTime = performance.now();
                 const duration = 400;
