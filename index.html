@@ -40,6 +40,7 @@
                           position="0 0 0.3"
                           scale="0.1 0.1 0.1"
                           rotation="0 180 0"
+                          animation-mixer="clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat"
                           >
             </a-gltf-model>
 
@@ -252,7 +253,7 @@
 
             // ── マーカー検出 ──────────────────────
             target.addEventListener("targetFound", () => {
-                if(istrucking)
+
                 plane.setAttribute("visible", true);
                 spawnParticles();
 
