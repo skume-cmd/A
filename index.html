@@ -39,7 +39,7 @@
                           src="#avatarModel"
                           position="0 0 0.3"
                           scale="0.1 0.1 0.1"
-                          rotation="-90 0 180"
+                          rotation="90 0 0"
                           animation-mixer="clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat">
             </a-gltf-model>
 
@@ -74,7 +74,7 @@
                 this.el.object3D.position.set(x, 0, z);
 
                 this.el.object3D.rotation.set(
-                    THREE.MathUtils.degToRad(-90),
+                    THREE.MathUtils.degToRad(90),
                     THREE.MathUtils.degToRad((walkAngle * 180 / Math.PI) * -1),
                     0
                 );
@@ -198,7 +198,13 @@
                 document.querySelector("#voice2"),
                 document.querySelector("#voice3"),
             ];
-
+            avatar.addEventListener("model-loaded", () => {
+                avatar.object3D.rotation.set(
+                    THREE.MathUtils.degToRad(90),
+                    0,
+                    0
+                );
+            });
             // ── セリフ・音声・アニメーションの定義 ──
             const sequence = [
                 { text: "こんにちは！\nナビゲーターです", voice: voices[0], clip: "HumanArmature|HumanArmature|Man_Walk" },
@@ -296,9 +302,9 @@
 
                 avatar.removeAttribute("circle-walk");
                 avatar.object3D.position.set(0, 0, 0.3);
-                avatar.object3D.rotation.set(THREE.MathUtils.degToRad(-90), 0, 0);
+                avatar.object3D.rotation.set(THREE.MathUtils.degToRad(90), 0, 0);
                 avatar.object3D.rotation.set(0, 0, 0);
-                avatar.object3D.rotation.set(THREE.MathUtils.degToRad(-90), 0, 0);
+                avatar.object3D.rotation.set(THREE.MathUtils.degToRad(90), 0, 0);
                 avatar.setAttribute("animation-mixer", "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
 
                 started = false;
