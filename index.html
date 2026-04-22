@@ -81,6 +81,58 @@
             }
         });
 
+        AFRAME.registerComponent("idle-look-at-face", {
+            init() {
+                this.mesh = null;
+                this.neck = null;
+                this.Head = null;
+                this.Head_end = null;
+                this.camera = document.querySelector("[camera]").object3D;
+                this.isIdle = false;
+
+                this.el.addEventListener("model-loaded", () => {
+                    this.mesh = this.el.getObject3D("mesh");
+
+                    this.mesh.traverse(o => {
+                        if (!o.isBone) return;
+                        if (o.name === "Neck") this.neck = o;
+                        if (o.name === "Head") this.jaw = o;
+                        if (o.name === "Head_end") this.head = o;
+                    });
+                });
+
+                // animation-mixer の再生状態チェック
+                this.el.addEventListener("animation-mixer-started", e => {
+                    this.isIdle = e.detail.clip.name.includes("Idle");
+                });
+            },
+
+            tick() {
+                if (!this.isIdle || !this.camera) return;
+
+                const target = this.camera.position;
+
+                // 強さを分ける（これが重要）
+                if (this.neck) {
+                    this.neck.lookAt(target);
+                    this.neck.rotation.x *= 0.3;
+                    this.neck.rotation.y *= 0.3;
+                }
+
+                if (this.jaw) {
+                    this.jaw.lookAt(target);
+                    this.jaw.rotation.x *= 0.2;
+                    this.jaw.rotation.y *= 0.2;
+                }
+
+                if (this.head) {
+                    this.head.lookAt(target);
+                    this.head.rotation.x *= 0.5;
+                    this.head.rotation.y *= 0.5;
+                }
+            }
+        });
+
         AFRAME.registerComponent("smooth-follow", {
             tick() {
                 const target = document.querySelector("#target").object3D;
