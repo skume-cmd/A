@@ -40,7 +40,7 @@
                           position="0 0 0.3"
                           scale="0.1 0.1 0.1"
                           rotation="250 0 0"
-                          animation-mixer="clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat">
+                          >
             </a-gltf-model>
 
             <a-plane id="bubble-plane"
@@ -222,7 +222,7 @@
                     avatar.setAttribute("animation-mixer", "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
                     avatar.removeAttribute("circle-walk");
                     stopWalking();
-                    avatar.setAttribute("smoooth-follow", "");
+                    avatar.setAttribute("smooth-follow", "");
                     return;
                 }
 
