@@ -272,7 +272,18 @@
 
                 // ジャンプ終了 → 待機
                 avatar.addEventListener("animation-finished", () => {
+                    // ジャンプ終了時点の座標をそのまま取得して固定
+                    const pos = avatar.object3D.position.clone();
+
                     avatar.setAttribute("animation-mixer", "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
+
+                    // 次フレームで座標を戻す（animation-mixerが上書きするのを防ぐ）
+                    requestAnimationFrame(() => {
+                        avatar.object3D.position.set(pos.x, pos.y, pos.z);
+
+                        // circle-walk の開始角度もその座標に合わせる
+                        walkAngle = Math.atan2(pos.x, pos.z - 0.3);
+                    });
                 }, { once: true });
             });
 
