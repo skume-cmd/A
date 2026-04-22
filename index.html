@@ -216,6 +216,7 @@
                     // 全部終わったら待機
                     avatar.setAttribute("animation-mixer", "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
                     avatar.removeAttribute("circle-walk");
+                    stopWalking();
                     avatar.setAttribute("smoooth-follow", "");
                     return;
                 }
@@ -232,6 +233,7 @@
                     walkAngle = 0;
                     avatar.setAttribute("circle-walk", "");
                 } else {
+                    stopWalking();
                     avatar.removeAttribute("circle-walk");
                 }
 
@@ -251,7 +253,7 @@
                 // ジャンプで登場
                 avatar.removeAttribute("animation__appear");
                 avatar.setAttribute("animation-mixer",
-                    "clip: HumanArmature|HumanArmature|Man_Jump; loop: once; startAt: 300");
+                    "clip: start; loop: once; startAt: 300");
 
                 const startTime = performance.now();
                 const duration = 400;
@@ -276,6 +278,7 @@
 
             // ── マーカー消失 ──────────────────────
             target.addEventListener("targetLost", () => {
+                stopWalking();
                 plane.setAttribute("visible", false);
                 voices.forEach(v => { v.pause(); v.currentTime = 0; });
 
@@ -286,6 +289,11 @@
 
                 started = false;
             });
+
+            function stopWalking() {
+                avatar.removeAttribute("circle-walk");
+                walkAngle = 0;
+            }
 
             // ── タップで開始 ──────────────────────
             document.body.addEventListener("click", () => {
