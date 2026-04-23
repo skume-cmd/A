@@ -202,7 +202,7 @@
         // パーティクル生成
         // ══════════════════════════════════════
         function spawnParticles() {
-            const target = document.querySelector("#target");
+            const anchor = document.querySelector("#anchor");
             const colors = ["#FFD700", "#FF69B4", "#00BFFF", "#7FFF00", "#FF4500", "#DA70D6", "#FF8C00", "#ADFF2F"];
             const count = 10;
 
@@ -215,7 +215,7 @@
                 const dur = 600 + Math.floor(Math.random() * 400);
                 const color = colors[i % colors.length];
 
-                p.setAttribute("position", "0 0.1 0.3");
+                p.setAttribute("position", "0 0.1 0");
                 p.setAttribute("radius", 0.015 + Math.random() * 0.015);
                 p.setAttribute("color", color);
                 p.setAttribute("material", "transparent: true; opacity: 1");
@@ -224,7 +224,7 @@
                 p.setAttribute("animation__fade",
                     `property: components.material.material.opacity; from: 1; to: 0; dur: ${dur}`);
 
-                target.appendChild(p);
+                anchor.appendChild(p);
                 setTimeout(() => p.parentNode && p.parentNode.removeChild(p), dur + 100);
             }
         }
@@ -291,29 +291,28 @@
             
             // ── マーカー検出 ──────────────────────
             target.addEventListener("targetFound", () => {
-                if (stabilizeTimer) clearTimeout(stabilizeTimer);
-
-                followEnabled = true;
-
-                stabilizeTimer = setTimeout(() => {
-                    followEnabled = false;
-                    avatar.removeAttribute("smooth-follow"); // ← ここで完全固定
-                }, 1000);
+                if (anchored) return;
+                anchored = true;
 
                 plane.setAttribute("visible", true);
                 spawnParticles();
 
-                // 登場はアニメーションだけ
-                avatar.setAttribute(
-                    "animation-mixer",
-                    "clip: start; loop: once"
-                );
+                // ★ ここが重要
+                avatar.removeAttribute("animation-mixer");
+
+                avatar.setAttribute("animation-mixer", {
+                    clip: "start",
+                    loop: "once",
+                    clampWhenFinished: true,
+                    crossFadeDuration: 0.15
+                });
 
                 avatar.addEventListener("animation-finished", () => {
-                    avatar.setAttribute(
-                        "animation-mixer",
-                        "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat"
-                    );
+                    avatar.setAttribute("animation-mixer", {
+                        clip: "HumanArmature|HumanArmature|Man_Idle",
+                        loop: "repeat",
+                        crossFadeDuration: 0.2
+                    });
                 }, { once: true });
             });
 
