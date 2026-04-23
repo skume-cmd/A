@@ -45,7 +45,7 @@
                              position="0 0.65 0.3"
                              width="1.3" height="0.4"
                              visible="false"
-                             look-at="[camera]"
+                             smooth-look-at
                              material="src: #bubble-canvas;
                                    transparent: true;
                                    alphaTest: 0.1;
@@ -84,25 +84,41 @@
             }
         });
 
+        AFRAME.registerComponent("smooth-look-at", {
+            init() {
+                this.camera = document.querySelector("[camera]").object3D;
+                this.tmpMat = new THREE.Matrix4();
+                this.targetQuat = new THREE.Quaternion();
+            },
+
+            tick() {
+                const obj = this.el.object3D;
+                const camPos = this.camera.getWorldPosition(new THREE.Vector3());
+
+                this.tmpMat.lookAt(
+                    obj.getWorldPosition(new THREE.Vector3()),
+                    camPos,
+                    new THREE.Vector3(0, 1, 0)
+                );
+                this.targetQuat.setFromRotationMatrix(this.tmpMat);
+
+                // 少し強めでもOK
+                obj.quaternion.slerp(this.targetQuat, 0.08);
+            }
+        });
+
         AFRAME.registerComponent("idle-look-at-face", {
             init() {
-                this.mesh = null;
-                this.neck = null;
-                this.head = null;
-                this.headEnd = null;
-
                 this.camera = document.querySelector("[camera]").object3D;
                 this.tmpVec = new THREE.Vector3();
-                this.isIdle = true; // 最初から Idle
+                this.tmpMat = new THREE.Matrix4();
+                this.targetQuat = new THREE.Quaternion();
+                this.head = null;
+                this.isIdle = true;
 
                 this.el.addEventListener("model-loaded", () => {
-                    this.mesh = this.el.getObject3D("mesh");
-
-                    this.mesh.traverse(o => {
-                        if (!o.isBone) return;
-                        if (o.name === "Neck") this.neck = o;
-                        if (o.name === "Head") this.head = o;
-                        if (o.name === "Head_end") this.headEnd = o;
+                    this.el.getObject3D("mesh").traverse(o => {
+                        if (o.isBone && o.name === "Head") this.head = o;
                     });
                 });
 
@@ -112,25 +128,20 @@
             },
 
             tick() {
-                if (!this.isIdle || !this.head || !this.camera) return;
+                if (!this.isIdle || !this.head) return;
 
                 this.camera.getWorldPosition(this.tmpVec);
+                this.head.getWorldPosition(this.tmpMat.elements);
 
-                // 首：少し
-                if (this.neck) {
-                    this.neck.lookAt(this.tmpVec);
-                    this.neck.rotation.x *= 0.3;
-                    this.neck.rotation.y *= 0.3;
-                }
+                this.tmpMat.lookAt(
+                    this.head.getWorldPosition(new THREE.Vector3()),
+                    this.tmpVec,
+                    new THREE.Vector3(0, 1, 0)
+                );
+                this.targetQuat.setFromRotationMatrix(this.tmpMat);
 
-                // 頭：しっかり
-                if (this.head) {
-                    this.head.lookAt(this.tmpVec);
-                    this.head.rotation.x *= 0.6;
-                    this.head.rotation.y *= 0.6;
-                }
-
-                // Head_end は回さない（安定）
+                // ★ 即座に向かない。ゆっくり寄せる
+                this.head.quaternion.slerp(this.targetQuat, 0.05);
             }
         });
 
