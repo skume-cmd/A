@@ -36,7 +36,7 @@
             <a-entity id="anchor">
                 <a-gltf-model id="avatar"
                               src="#avatarModel"
-                              position="0 0 0.3"
+                              position="0 0 0"
                               scale="0.1 0.1 0.1"
                               rotation="0 0 0"
                               idle-look-at-face
@@ -333,6 +333,7 @@
                         loop: "repeat"
                     });
                 }, { once: true });
+                anchor.object3D.position.z -= 0.5;
             });
 
 
