@@ -78,11 +78,9 @@
                 const z = Math.cos(walkAngle) * radius + 0.3;
                 this.el.object3D.position.set(x, 0, z);
 
-                this.el.object3D.rotation.set(
-                    THREE.MathUtils.degToRad(250),
-                    THREE.MathUtils.degToRad((walkAngle * 180 / Math.PI) * -1),
-                    0
-                );
+                this.el.object3D.rotation.x = 0;
+                this.el.object3D.rotation.z = 0;
+                this.el.object3D.rotation.y = -walkAngle;
             }
         });
 
@@ -243,13 +241,6 @@
                 document.querySelector("#voice2"),
                 document.querySelector("#voice3"),
             ];
-            avatar.addEventListener("model-loaded", () => {
-                avatar.object3D.rotation.set(
-                    THREE.MathUtils.degToRad(250),
-                    0,
-                    0
-                );
-            });
             // ── セリフ・音声・アニメーションの定義 ──
             const sequence = [
                 { text: "こんにちは！\nナビゲーターです", voice: voices[0], clip: "HumanArmature|HumanArmature|Man_Walk" },
