@@ -1,106 +1,96 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
+           body {
+                 margin: 0;
+                 overflow: hidden;
+
         }
+
+
     </style>
 </head>
+
 <body>
+    <a-scene  mindar-image="
+   imageTargetSrc: ./targets.mind;
+   filterMinCF: 0.001;
+   filterBeta: 2;
+   warmupTolerance: 5;
+   missTolerance: 5;
+ "
+              color-space="sRGB"
+              renderer="colorManagement: true, physicallyCorrectLights"
+              vr-mode-ui="enabled: false"
+              device-orientation-permission-ui="enabled: false">
 
-    <a-scene mindar-image="imageTargetSrc: ./targets.mind; filterMinCF:0.001; filterBeta: 10; warmupTolerance: 5;missTolerance: 5; "
-             color-space="sRGB"
-             renderer="colorManagement: true, physicallyCorrectLights"
-             vr-mode-ui="enabled: false"
-             device-orientation-permission-ui="enabled: false">
-
+        <!-- ───────── Assets ───────── -->
         <a-assets>
             <a-asset-item id="avatarModel" src="./models/charcter.glb"></a-asset-item>
-            <audio id="voice1" src="./voice1.mp3" preload="auto"></audio>
-            <audio id="voice2" src="./voice2.mp3" preload="auto"></audio>
-            <audio id="voice3" src="./voice3.mp3" preload="auto"></audio>
             <canvas id="bubble-canvas" width="512" height="256" style="display:none"></canvas>
         </a-assets>
 
-        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+        <!-- ───────── Camera & Light ───────── -->
+        <a-camera position="0 0 0" near="0.01" far="50"></a-camera>
         <a-entity light="type: ambient; intensity: 1"></a-entity>
         <a-entity light="type: directional; intensity: 1" position="1 1 1"></a-entity>
 
+        <!-- ───────── MindAR Target ───────── -->
         <a-entity mindar-image-target="targetIndex: 0" id="target">
 
-            <a-gltf-model id="avatar"
-                          smooth-follow
-                          src="#avatarModel"
-                          position="0 0 0.3"
-                          scale="0.2 0.2 0.2"
-                          rotation="0 180 0"
-                          idle-look-at-face
-                          animation-mixer="clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat"
-                          >
+            <!-- アバター（root は一切動かさない） -->
+            <a-gltf-model      id="avatar"
+                               src="#avatarModel"
+                               position="0 0 0"
+                               scale="0.2 0.2 0.2"
+                               rotation="0 180 0"
+                               animation-mixer="clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat"
+                               idle-look-at-face
+                             >
+
+                <!-- 吹き出し（回転制御なし） -->
+                <a-plane        id="bubble-plane"
+                                position="0 0.65 0"
+                                width="1.3"
+                                height="0.4"
+                                visible="false"
+                                material="
+         src: #bubble-canvas;
+         transparent: true;
+         alphaTest: 0.1;
+         shader: flat;
+         npot: true
+       ">
+                </a-plane>
+
             </a-gltf-model>
-
-            <a-plane id="bubble-plane"
-                     position="0 0.65 0.3"
-                     width="1.3" height="0.4"
-                     visible="false"
-                     material="src: #bubble-canvas;
-                          transparent: true;
-                          alphaTest: 0.1;
-                          shader: flat;
-                          npot: true">
-            </a-plane>
-
         </a-entity>
     </a-scene>
 
     <script>
-        // ══════════════════════════════════════
-        // circle-walk コンポーネント（最上部に登録）
-        // ══════════════════════════════════════
-        let walkAngle = 0;
-        AFRAME.registerComponent("circle-walk", {
-            tick(time, delta) {
-                const radius = 0.4;
-                const speed = 0.5;
-                walkAngle += speed * (delta / 1000);
-
-                const x = Math.sin(walkAngle) * radius;
-                const z = Math.cos(walkAngle) * radius + 0.3;
-                this.el.object3D.position.set(x, 0, z);
-
-                this.el.object3D.rotation.set(
-                    THREE.MathUtils.degToRad(250),
-                    THREE.MathUtils.degToRad((walkAngle * 180 / Math.PI) * -1),
-                    0
-                );
-            }
-        });
-
+        /* =====================================================
+         * Head だけ視線追従（ARで揺れない最小構成）
+         * ===================================================== */
         AFRAME.registerComponent("idle-look-at-face", {
             init() {
-                this.mesh = null;
-                this.neck = null;
-                this.head = null;
-                this.headEnd = null;
-
                 this.camera = document.querySelector("[camera]").object3D;
+                this.head = null;
+
                 this.tmpVec = new THREE.Vector3();
-                this.isIdle = true; // 最初から Idle
+                this.tmpMat = new THREE.Matrix4();
+                this.targetQuat = new THREE.Quaternion();
+                this.isIdle = true;
 
                 this.el.addEventListener("model-loaded", () => {
-                    this.mesh = this.el.getObject3D("mesh");
-
-                    this.mesh.traverse(o => {
-                        if (!o.isBone) return;
-                        if (o.name === "Neck") this.neck = o;
-                        if (o.name === "Head") this.head = o;
-                        if (o.name === "Head_end") this.headEnd = o;
+                    this.el.getObject3D("mesh").traverse(o => {
+                        if (o.isBone && o.name === "Head") {
+                            this.head = o;
+                        }
                     });
                 });
 
@@ -110,268 +100,76 @@
             },
 
             tick() {
-                if (!this.isIdle || !this.head || !this.camera) return;
+                if (!this.isIdle || !this.head) return;
 
                 this.camera.getWorldPosition(this.tmpVec);
 
-                // 首：少し
-                if (this.neck) {
-                    this.neck.lookAt(this.tmpVec);
-                    this.neck.rotation.x *= 0.3;
-                    this.neck.rotation.y *= 0.3;
-                }
+                this.tmpMat.lookAt(
+                    this.head.getWorldPosition(new THREE.Vector3()),
+                    this.tmpVec,
+                    new THREE.Vector3(0, 1, 0)
+                );
 
-                // 頭：しっかり
-                if (this.head) {
-                    this.head.lookAt(this.tmpVec);
-                    this.head.rotation.x *= 0.6;
-                    this.head.rotation.y *= 0.6;
-                }
+                this.targetQuat.setFromRotationMatrix(this.tmpMat);
 
-                // Head_end は回さない（安定）
+                /* ★ 超重要：0.02 以下 */
+                this.head.quaternion.slerp(this.targetQuat, 0.02);
             }
         });
 
-        AFRAME.registerComponent("smooth-follow", {
-            tick() {
-                const target = document.querySelector("#target").object3D;
-                const obj = this.el.object3D;
-
-                obj.position.lerp(target.position, 0.15);
-                obj.quaternion.slerp(target.quaternion, 0.15);
-            }
-        });
-
-        // ══════════════════════════════════════
-        // 吹き出し描画
-        // ══════════════════════════════════════
+        /* =====================================================
+         * 吹き出し描画
+         * ===================================================== */
         function drawBubble(text) {
             const canvas = document.getElementById("bubble-canvas");
             const ctx = canvas.getContext("2d");
-            const W = canvas.width;
-            const H = canvas.height;
-
-            ctx.clearRect(0, 0, W, H);
-
-            const fontSize = 44;
-            const lineHeight = fontSize * 1.4;
-            ctx.font = `bold ${fontSize}px sans-serif`;
-
-            const lines = text.split("\n");
-
-            const textBlockH = lines.length * lineHeight;
-            const padV = 28;
-            const tailH = 36;
-            const bx = 16, by = 16;
-            const bw = W - 32;
-            const bh = textBlockH + padV * 2;
-            const r = 24;
-
-            ctx.beginPath();
-            ctx.moveTo(bx + r, by);
-            ctx.lineTo(bx + bw - r, by);
-            ctx.arcTo(bx + bw, by, bx + bw, by + r, r);
-            ctx.lineTo(bx + bw, by + bh - r);
-            ctx.arcTo(bx + bw, by + bh, bx + bw - r, by + bh, r);
-            ctx.lineTo(W / 2 + 28, by + bh);
-            ctx.lineTo(W / 2, by + bh + tailH);
-            ctx.lineTo(W / 2 - 28, by + bh);
-            ctx.lineTo(bx + r, by + bh);
-            ctx.arcTo(bx, by + bh, bx, by + bh - r, r);
-            ctx.lineTo(bx, by + r);
-            ctx.arcTo(bx, by, bx + r, by, r);
-            ctx.closePath();
-
-            ctx.shadowColor = "rgba(0,0,0,0.2)";
-            ctx.shadowBlur = 14;
-            ctx.shadowOffsetY = 4;
-            ctx.fillStyle = "white";
-            ctx.fill();
-            ctx.shadowColor = "transparent";
-            ctx.strokeStyle = "rgba(0,0,0,0.1)";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            ctx.fillStyle = "#222222";
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 42px sans-serif";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            const startY = by + padV + fontSize / 2;
-            lines.forEach((line, i) => {
-                ctx.fillText(line, W / 2, startY + i * lineHeight);
-            });
+            ctx.fillText(text, canvas.width / 2, canvas.height / 2);
 
             const plane = document.getElementById("bubble-plane");
-            if (plane && plane.components.material) {
+            if (plane?.components.material) {
                 plane.components.material.material.map.needsUpdate = true;
             }
         }
 
-        // ══════════════════════════════════════
-        // パーティクル生成
-        // ══════════════════════════════════════
-        function spawnParticles() {
-            const target = document.querySelector("#target");
-            const colors = ["#FFD700", "#FF69B4", "#00BFFF", "#7FFF00", "#FF4500", "#DA70D6", "#FF8C00", "#ADFF2F"];
-            const count = 10;
-
-            for (let i = 0; i < count; i++) {
-                const p = document.createElement("a-sphere");
-                const angle = (i / count) * Math.PI * 2;
-                const dist = 0.4 + Math.random() * 0.3;
-                const tx = Math.cos(angle) * dist;
-                const ty = 0.3 + Math.random() * 0.5;
-                const dur = 600 + Math.floor(Math.random() * 400);
-                const color = colors[i % colors.length];
-
-                p.setAttribute("position", "0 0.1 0.3");
-                p.setAttribute("radius", 0.015 + Math.random() * 0.015);
-                p.setAttribute("color", color);
-                p.setAttribute("material", "transparent: true; opacity: 1");
-                p.setAttribute("animation",
-                    `property: position; to: ${tx} ${ty} 0.3; dur: ${dur}; easing: easeOutQuad`);
-                p.setAttribute("animation__fade",
-                    `property: components.material.material.opacity; from: 1; to: 0; dur: ${dur}`);
-
-                target.appendChild(p);
-                setTimeout(() => p.parentNode && p.parentNode.removeChild(p), dur + 100);
-            }
-        }
-
-        // ══════════════════════════════════════
-        // メイン処理
-        // ══════════════════════════════════════
+        /* =====================================================
+         * メイン処理
+         * ===================================================== */
         document.addEventListener("DOMContentLoaded", () => {
-            const target = document.querySelector("#target");
-            const plane = document.querySelector("#bubble-plane");
-            const avatar = document.querySelector("#avatar");
-            const voices = [
-                document.querySelector("#voice1"),
-                document.querySelector("#voice2"),
-                document.querySelector("#voice3"),
-            ];
-            avatar.addEventListener("model-loaded", () => {
-                avatar.object3D.rotation.set(
-                    THREE.MathUtils.degToRad(250),
-                    0,
-                    0
-                );
-            });
-            // ── セリフ・音声・アニメーションの定義 ──
-            const sequence = [
-                { text: "こんにちは！\nナビゲーターです", voice: voices[0], clip: "HumanArmature|HumanArmature|Man_Walk" },
-                { text: "私たちは、\n会社。", voice: voices[1], clip: "Wave" },
-                { text: "今日は、ご紹介します。", voice: voices[2], clip: "Idle" },
-            ];
+            const target = document.getElementById("target");
+            const avatar = document.getElementById("avatar");
+            const bubble = document.getElementById("bubble-plane");
 
-            let started = false;
+            drawBubble("こんにちは！");
 
-            drawBubble("タップしてください");
-
-            // ── セリフ自動再生 ────────────────────
-            function playSequence(idx) {
-                if (idx >= sequence.length) {
-                    // 全部終わったら待機
-                    avatar.setAttribute("animation-mixer", "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
-                    avatar.removeAttribute("circle-walk");
-                    stopWalking();
-                    avatar.setAttribute("smooth-follow", "");
-                    return;
-                }
-
-                const { text, voice, clip } = sequence[idx];
-
-                drawBubble(text);
-
-                // アニメーション切り替え
-                avatar.setAttribute("animation-mixer", `clip: ${clip}; loop: repeat`);
-
-                // Walk のときだけ円歩きON
-                if (clip === "HumanArmature|HumanArmature|Man_Walk") {
-                    walkAngle = 0;
-                    avatar.setAttribute("circle-walk", "");
-                } else {
-                    stopWalking();
-                    avatar.removeAttribute("circle-walk");
-                }
-
-                // 音声再生 → 終わったら次へ
-                voice.currentTime = 0;
-                voice.play().catch(e => console.warn("再生エラー:", e));
-                voice.addEventListener("ended", () => {
-                    playSequence(idx + 1);
-                }, { once: true });
-            }
-
-            // ── マーカー検出 ──────────────────────
             target.addEventListener("targetFound", () => {
+                bubble.setAttribute("visible", true);
 
-                plane.setAttribute("visible", true);
-                spawnParticles();
+                avatar.removeAttribute("animation-mixer");
+                avatar.setAttribute("animation-mixer", {
+                    clip: "start",
+                    loop: "once",
+                    clampWhenFinished: true
+                });
 
-                // ジャンプで登場
-                avatar.removeAttribute("animation__appear");
-                avatar.setAttribute("animation-mixer",
-                    "clip: start; loop: once; startAt: 300");
-
-                const startTime = performance.now();
-                const duration = 400;
-                const fromY = -0.3;
-                const toY = 0;
-                avatar.object3D.position.set(0, fromY, 0.3);
-
-                function appearTick() {
-                    const elapsed = performance.now() - startTime;
-                    const progress = Math.min(elapsed / duration, 1);
-                    const eased = 1 - (1 - progress) * (1 - progress);
-                    avatar.object3D.position.set(0, fromY + (toY - fromY) * eased, 0.3);
-                    if (progress < 1) requestAnimationFrame(appearTick);
-                }
-                requestAnimationFrame(appearTick);
-
-                // ジャンプ終了 → 待機
                 avatar.addEventListener("animation-finished", () => {
-                    // ジャンプ終了時点の座標をそのまま取得して固定
-                    const pos = avatar.object3D.position.clone();
-
-                    avatar.setAttribute("animation-mixer", "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
-
-                    // 次フレームで座標を戻す（animation-mixerが上書きするのを防ぐ）
-                    requestAnimationFrame(() => {
-                        avatar.object3D.position.set(pos.x, pos.y, pos.z);
-
-
-                        // circle-walk の開始角度もその座標に合わせる
-                        walkAngle = Math.atan2(pos.x, pos.z - 0.3);
+                    avatar.setAttribute("animation-mixer", {
+                        clip: "HumanArmature|HumanArmature|Man_Idle",
+                        loop: "repeat"
                     });
                 }, { once: true });
             });
 
-            // ── マーカー消失 ──────────────────────
             target.addEventListener("targetLost", () => {
-                stopWalking();
-                plane.setAttribute("visible", false);
-                voices.forEach(v => { v.pause(); v.currentTime = 0; });
-
-                avatar.removeAttribute("circle-walk");
-                avatar.object3D.position.set(0, 0, 0.3);
-                avatar.object3D.rotation.set(THREE.MathUtils.degToRad(250), 0, 0);
-                avatar.object3D.rotation.set(0, 0, 0);
-                avatar.object3D.rotation.set(THREE.MathUtils.degToRad(250), 0, 0);
-                avatar.setAttribute("animation-mixer", "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
-
-                started = false;
-            });
-
-            function stopWalking() {
-                avatar.removeAttribute("circle-walk");
-                walkAngle = 0;
-            }
-
-            // ── タップで開始 ──────────────────────
-            document.body.addEventListener("click", () => {
-                if (started) return;
-                started = true;
-                playSequence(0);
+                bubble.setAttribute("visible", false);
+                avatar.setAttribute("animation-mixer", {
+                    clip: "HumanArmature|HumanArmature|Man_Idle",
+                    loop: "repeat"
+                });
             });
         });
     </script>
