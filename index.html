@@ -33,29 +33,28 @@
         <a-entity light="type: directional; intensity: 1" position="1 1 1"></a-entity>
 
         <a-entity mindar-image-target="targetIndex: 0" id="target">
-
-            <a-gltf-model id="avatar"
-                          smooth-follow
-                          src="#avatarModel"
-                          position="0 0 0.3"
-                          scale="0.1 0.1 0.1"
-                          rotation="0 180 0"
-                          idle-look-at-face
-                          animation-mixer="clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat">
-                <a-plane id="bubble-plane"
-                         position="0 0.65 0.3"
-                         width="1.3" height="0.4"
-                         visible="false"
-                         look-at="[camera]"
-                         material="src: #bubble-canvas;
+            <a-entity id="anchor">
+                <a-gltf-model id="avatar"
+                              src="#avatarModel"
+                              position="0 0 0.3"
+                              scale="0.1 0.1 0.1"
+                              rotation="0 180 0"
+                              idle-look-at-face
+                              animation-mixer="clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat">
+                    <a-plane id="bubble-plane"
+                             position="0 0.65 0.3"
+                             width="1.3" height="0.4"
+                             visible="false"
+                             look-at="[camera]"
+                             material="src: #bubble-canvas;
                                    transparent: true;
                                    alphaTest: 0.1;
                                    shader: flat;
                                    npot: true">
-                </a-plane>
-            </a-gltf-model>
+                    </a-plane>
+                </a-gltf-model>
 
-            
+            </a-entity>
 
         </a-entity>
     </a-scene>
@@ -65,9 +64,8 @@
         // circle-walk コンポーネント（最上部に登録）
         // ══════════════════════════════════════
         let walkAngle = 0;
-        let followEnabled = true;
-        let stabilizeTimer = null;
         let walking = false;
+        let anchored = false;
 
         AFRAME.registerComponent("circle-walk", {
             tick(time, delta) {
@@ -135,17 +133,6 @@
                 }
 
                 // Head_end は回さない（安定）
-            }
-        });
-
-        AFRAME.registerComponent("smooth-follow", {
-            tick() {
-                if (!followEnabled) return;
-                const target = document.querySelector("#target").object3D;
-                const obj = this.el.object3D;
-
-                obj.position.lerp(target.position, 0.15);
-                obj.quaternion.slerp(target.quaternion, 0.15);
             }
         });
 
@@ -313,66 +300,35 @@
             
             // ── マーカー検出 ──────────────────────
             target.addEventListener("targetFound", () => {
+                if (stabilizeTimer) clearTimeout(stabilizeTimer);
+
                 followEnabled = true;
 
-                // 1秒間ちゃんと見えていたら固定
-                if (stabilizeTimer) clearTimeout(stabilizeTimer);
                 stabilizeTimer = setTimeout(() => {
-                    followEnabled = false; // ← ここで止める
-                    avatar.removeAttribute("smooth-follow");
+                    followEnabled = false;
+                    avatar.removeAttribute("smooth-follow"); // ← ここで完全固定
                 }, 1000);
+
                 plane.setAttribute("visible", true);
                 spawnParticles();
 
-                // ジャンプで登場
-                avatar.removeAttribute("animation__appear");
-                avatar.setAttribute("animation-mixer",
-                    "clip: start; loop: once; startAt: 300");
+                // 登場はアニメーションだけ
+                avatar.setAttribute(
+                    "animation-mixer",
+                    "clip: start; loop: once"
+                );
 
-                const startTime = performance.now();
-                const duration = 400;
-                const fromY = -0.3;
-                const toY = 0;
-                avatar.object3D.position.set(0, fromY, 0.3);
-
-                function appearTick() {
-                    const elapsed = performance.now() - startTime;
-                    const progress = Math.min(elapsed / duration, 1);
-                    const eased = 1 - (1 - progress) * (1 - progress);
-                    avatar.object3D.position.set(0, fromY + (toY - fromY) * eased, 0.3);
-                    if (progress < 1) requestAnimationFrame(appearTick);
-                }
-                requestAnimationFrame(appearTick);
-
-                // ジャンプ終了 → 待機
                 avatar.addEventListener("animation-finished", () => {
-                    // ジャンプ終了時点の座標をそのまま取得して固定
-                    const pos = avatar.object3D.position.clone();
-
-                    avatar.setAttribute("animation-mixer", "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
-
-                    // 次フレームで座標を戻す（animation-mixerが上書きするのを防ぐ）
-                    requestAnimationFrame(() => {
-                        avatar.object3D.position.set(pos.x, pos.y, pos.z);
-
-
-                        // circle-walk の開始角度もその座標に合わせる
-                        walkAngle = Math.atan2(pos.x, pos.z - 0.3);
-                    });
+                    avatar.setAttribute(
+                        "animation-mixer",
+                        "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat"
+                    );
                 }, { once: true });
             });
 
             // ── マーカー消失 ──────────────────────
             target.addEventListener("targetLost", () => {
-                stopWalking();
-                plane.setAttribute("visible", false);
-                voices.forEach(v => { v.pause(); v.currentTime = 0; });
-
-                avatar.removeAttribute("circle-walk");
-                avatar.object3D.position.set(0, 0, 0.3);
-                avatar.setAttribute("animation-mixer", "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
-
-                started = false;
+                
             });
 
             function stopWalking() {
