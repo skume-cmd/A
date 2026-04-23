@@ -67,8 +67,11 @@
         let walkAngle = 0;
         let followEnabled = true;
         let stabilizeTimer = null;
+        let walking = false;
+
         AFRAME.registerComponent("circle-walk", {
             tick(time, delta) {
+                if (!walking) return;
                 const radius = 0.4;
                 const speed = 0.5;
                 walkAngle += speed * (delta / 1000);
@@ -292,9 +295,11 @@
                 // Walk のときだけ円歩きON
                 if (clip === "HumanArmature|HumanArmature|Man_Walk") {
                     walkAngle = 0;
+                    walking = true;
                     avatar.setAttribute("circle-walk", "");
                 } else {
                     stopWalking();
+                    walking = false;
                     avatar.removeAttribute("circle-walk");
                 }
 
@@ -365,9 +370,6 @@
 
                 avatar.removeAttribute("circle-walk");
                 avatar.object3D.position.set(0, 0, 0.3);
-                avatar.object3D.rotation.set(THREE.MathUtils.degToRad(250), 0, 0);
-                avatar.object3D.rotation.set(0, 0, 0);
-                avatar.object3D.rotation.set(THREE.MathUtils.degToRad(250), 0, 0);
                 avatar.setAttribute("animation-mixer", "clip: HumanArmature|HumanArmature|Man_Idle; loop: repeat");
 
                 started = false;
